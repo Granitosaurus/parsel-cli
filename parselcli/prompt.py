@@ -57,11 +57,12 @@ class Prompter:
         'strip': Strip(),
     }
 
-    def __init__(self, text, response=None, start_in_css=False, flag_strip=False):
+    def __init__(self, text, response=None, preferred_embed=None, start_in_css=False, flag_strip=False):
         self.sel = Selector(text)
         self.response = response
         self.flag_strip = flag_strip
         self.processors = []
+        self.preferred_embed = preferred_embed
         # setup completers
         self.completer_xpath = MiddleWordCompleter(BASE_COMPLETION + get_xpath_completion(self.sel), ignore_case=True,
                                                    match_end=True,
@@ -97,7 +98,7 @@ class Prompter:
             'sel': self.sel,
             'response': self.response,
             'request': self.response.request if self.response else None}
-        embed_auto(namespace)
+        embed_auto(namespace, preferred=self.preferred_embed)
 
     def _enable_flag(self, flag):
         print('enabled flag: {}'.format(flag))
@@ -140,9 +141,12 @@ class Prompter:
         print('switching to css')
         self.completer = self.completer_css
 
-    def start_prompt_mode(self):
+    def start_prompt_mode(self, start_in_embed=False):
         prompt_history = FileHistory(os.path.expanduser('~/.parsel_history'))
         while True:
+            if start_in_embed:
+                self._embed()
+                start_in_embed = False
             text = prompt('> ', history=prompt_history,
                           auto_suggest=AutoSuggestFromHistory(),
                           enable_history_search=True,
