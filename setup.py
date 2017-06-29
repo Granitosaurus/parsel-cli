@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='parsel-cli',
-    version='0.22',
+    version='0.23',
     packages=['parselcli'],
     url='https://github.com/granitosaurus/parsel-cli',
     license='GPLv3',

@@ -1,3 +1,7 @@
+[0.23]
+- add compile options for css and xpath
+- add `first` processor/flag that returns only the first element when only 1 result found.
+
 [0.22]
 - add embed options `--shell` and `--embed` for cli.
 
