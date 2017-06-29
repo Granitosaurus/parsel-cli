@@ -8,7 +8,7 @@ from prompt_toolkit.history import FileHistory
 
 from parselcli.completer import MiddleWordCompleter
 from parselcli.embed import embed_auto
-from parselcli.processors import Strip
+from parselcli.processors import Strip, First
 
 XPATH_FUNCTIONS = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
 CSS_FUNCTIONS = ['::text', '::attr(']
@@ -55,12 +55,12 @@ class Prompter:
     """
     flags_processors = {
         'strip': Strip(),
+        'first': First(),
     }
 
-    def __init__(self, text, response=None, preferred_embed=None, start_in_css=False, flag_strip=False):
+    def __init__(self, text, response=None, preferred_embed=None, start_in_css=False, flags=None):
         self.sel = Selector(text)
         self.response = response
-        self.flag_strip = flag_strip
         self.processors = []
         self.preferred_embed = preferred_embed
         # setup completers
@@ -72,8 +72,8 @@ class Prompter:
                                                  sentence=True)
         self.completer = self.completer_css if start_in_css else self.completer_xpath
         # setup interpreter flags and commands
-        if flag_strip:
-            self._enable_flag('strip')
+        for flag in flags:
+            self._enable_flag(flag)
         self.commands = {
             'help': self._print_help,
             'debug': self._print_debug,
@@ -116,19 +116,19 @@ class Prompter:
             data = processor(data)
         return data
 
-    def get_xpath(self, sel, text):
+    def get_xpath(self, text):
         """Tries to extract xpath from a selector"""
         data = []
         try:
-            data = sel.xpath(text).extract()
+            data = self.sel.xpath(text).extract()
         except Exception as f:
             echo('E: {}'.format(f))
         return self.process(data)
 
-    def get_css(self, sel, text):
+    def get_css(self, text):
         """Tries to extract css from a selector"""
         try:
-            return self.process(sel.css(text).extract())
+            return self.process(self.sel.css(text).extract())
         except Exception as f:
             echo('E: {}'.format(f))
             return []
@@ -173,6 +173,6 @@ class Prompter:
                 self._completer_xpath()
                 continue
             if self.completer is self.completer_css:
-                echo(self.get_css(self.sel, text))
+                echo(self.get_css(text))
             else:
-                echo(self.get_xpath(self.sel, text))
+                echo(self.get_xpath(text))
