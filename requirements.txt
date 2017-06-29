@@ -1,2 +1,3 @@
 parsel
+prompt-toolkit
 click

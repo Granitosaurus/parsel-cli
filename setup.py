@@ -12,6 +12,7 @@ setup(
     install_requires=[
         'click',
         'parsel',
+        'prompt-toolkit'
     ],
     entry_points="""
         [console_scripts]
