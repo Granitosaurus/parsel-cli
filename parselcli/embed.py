@@ -2,25 +2,25 @@
 from collections import OrderedDict
 
 
-def embed_ipython_shell(namespace={}):
+def embed_ipython_shell(namespace=None):
     """Start an IPython Shell"""
     from IPython import embed
     embed(user_ns=namespace)
 
 
-def embed_bpython_shell(namespace={}):
+def embed_bpython_shell(namespace=None):
     """Start a bpython shell"""
     import bpython
     bpython.embed(locals_=namespace)
 
 
-def embed_ptpython_shell(namespace={}):
+def embed_ptpython_shell(namespace=None):
     """Start a ptpython shell"""
     import ptpython.repl
     ptpython.repl.embed(locals=namespace)
 
 
-def embed_standard_shell(namespace={}, banner=''):
+def embed_standard_shell(namespace=None, banner=''):
     """Start a standard python shell"""
     import code
     try:  # readline module is only available on unix systems
@@ -41,5 +41,13 @@ PYTHON_SHELLS = OrderedDict([
 ])
 
 
-def embed_auto():
-    pass
+def embed_auto(namespace=None):
+    for k, v in PYTHON_SHELLS.items():
+        try:
+            v(namespace)
+        except ImportError:
+            continue
+        break
+
+if __name__ == '__main__':
+    embed_auto()
