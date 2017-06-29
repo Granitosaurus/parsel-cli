@@ -1,6 +1,6 @@
 # parsel-cli
 
-Parsel-cli is a command line interface wrapper for [parsel](https://github.com/scrapy/parsel) package.
+Parsel-cli is a command line interface wrapper for [parsel](https://github.com/scrapy/parsel) package for evaluating css and xpath selection real time.
 > Parsel is a library to extract data from HTML and XML using XPath and CSS selectors
 
 ## Usage
@@ -8,10 +8,17 @@ Parsel-cli is a command line interface wrapper for [parsel](https://github.com/s
     Usage: parsel [OPTIONS] [URL]
 
     Options:
-      -css                 start in css mode
-      -strip               enable strip processor
-      -f, --file FILENAME  Input from html file
-      --help               Show this message and exit.
+      -css                            start in css mode instead of xpath
+      -fstrip                         enable strip processor flag
+      -ffirst                         enable first processor flag
+      -f, --file FILENAME             input from html file instead of url
+      -c TEXT                         compile css and return it
+      -x TEXT                         compile xpath and return it
+      --embed                         start in embedded python shell
+      --shell [ptpython|ipython|bpython|python]
+                                      preferred embedded shell; default auto
+                                      resolve in order
+      --help                          Show this message and exit.
 
 Parsel-cli reads XML or HTML file from url or disk and starts interpreter for xpath or css selectors.
 By default it starts in xpath interpreter mode but can be switched by `css` command and switched back with `xpath`.
@@ -37,6 +44,7 @@ Parcel-cli also supports tab complete and history powered by `prompt-toolkit` (h
       embed
     available flags (use +flag to enable and -flag to disable)
       strip
+      first
     > //span[@class='author']//text()
     ['Granitosaurus']
     > css
