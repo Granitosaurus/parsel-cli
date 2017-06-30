@@ -61,4 +61,4 @@ Parcel-cli also supports tab complete and history powered by `prompt-toolkit` (h
 
 ## Install
 
-    pip install git+https://github.com/Granitosaurus/parsel-cli
+    pip install git+https://github.com/Granitosaurus/parsel-cli@0.24
