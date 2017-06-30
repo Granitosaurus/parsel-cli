@@ -16,6 +16,10 @@ from parselcli.embed import PYTHON_SHELLS
               help='enable strip processor flag')
 @click.option('-ffirst', is_flag=True,
               help='enable first processor flag')
+@click.option('-fabsolute', is_flag=True,
+              help='enable absolute url processor flag')
+@click.option('-fonlyfirst', is_flag=True,
+              help='enable only first processor flag')
 @click.option('-f', '--file', type=click.File('r'),
               help='input from html file instead of url')
 @click.option('-c', 'compile_css',
@@ -26,7 +30,7 @@ from parselcli.embed import PYTHON_SHELLS
               help='start in embedded python shell')
 @click.option('--shell', type=click.Choice(list(PYTHON_SHELLS.keys())),
               help='preferred embedded shell; default auto resolve in order')
-def cli(url, file, css, fstrip, ffirst, embed, shell, compile_css, compile_xpath):
+def cli(url, file, css, fstrip, ffirst, fonlyfirst, fabsolute, embed, shell, compile_css, compile_xpath):
     if not file and not url:
         echo('Either url or file argument/option needs to be provided', err=True)
         return
@@ -39,13 +43,16 @@ def cli(url, file, css, fstrip, ffirst, embed, shell, compile_css, compile_xpath
     else:
         resp = None
         source = file.read()
-    flags = []
-    if fstrip:
-        flags.append('strip')
-    if ffirst:
-        flags.append('first')
+
+    flags = {
+        'strip': fstrip,
+        'first': ffirst,
+        'absolute': fabsolute,
+        'onlyfirst': fonlyfirst,
+    }
+    enabled_flags = [k for k, v in flags.items() if v]
     prompter = Prompter(text=source, response=resp, preferred_embed=shell,
-                        start_in_css=css, flags=flags)
+                        start_in_css=css, flags=enabled_flags)
     if compile_css:
         sys.stdout = sys.__stdout__  # enable stdout for results
         print(prompter.get_css(compile_css))

@@ -8,7 +8,7 @@ from prompt_toolkit.history import FileHistory
 
 from parselcli.completer import MiddleWordCompleter
 from parselcli.embed import embed_auto
-from parselcli.processors import Strip, First
+from parselcli.processors import Strip, First, UrlJoin
 
 XPATH_FUNCTIONS = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
 CSS_FUNCTIONS = ['::text', '::attr(']
@@ -53,10 +53,6 @@ class Prompter:
     """
     Prompt Toolkit container for all interpreter functions
     """
-    flags_processors = {
-        'strip': Strip(),
-        'first': First(),
-    }
 
     def __init__(self, text, response=None, preferred_embed=None, start_in_css=False, flags=None):
         self.sel = Selector(text)
@@ -72,12 +68,24 @@ class Prompter:
                                                  sentence=True)
         self.completer = self.completer_css if start_in_css else self.completer_xpath
         # setup interpreter flags and commands
+        self.flags_processors = self._set_flags()
         for flag in flags:
             self._enable_flag(flag)
-        self.commands = {
+        self.commands = self._set_commands()
+
+    def _set_commands(self):
+        return {
             'help': self._print_help,
             'debug': self._print_debug,
             'embed': self._embed,
+        }
+
+    def _set_flags(self):
+        return {
+            'strip': Strip(),
+            'first': First(),
+            'onlyfirst': First(only=True),
+            'absolute': UrlJoin(self.response.url)
         }
 
     def _print_help(self):
