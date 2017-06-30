@@ -12,7 +12,10 @@ from parselcli.processors import Strip, First, UrlJoin
 
 XPATH_FUNCTIONS = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
 CSS_FUNCTIONS = ['::text', '::attr(']
-BASE_COMPLETION = ['css', 'xpath', '+strip', '-strip', '-help', '-debug']
+_FLAGS = ['strip', 'first', 'absolute', 'onlyfirst']
+BASE_COMPLETION = ['css', 'xpath', '-help', '-debug']
+for flag in _FLAGS:
+    BASE_COMPLETION.extend(['+'+flag, '-'+flag])
 
 
 def find_attributes(sel, attr):
