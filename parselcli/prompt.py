@@ -1,5 +1,8 @@
 import os
+import webbrowser
+from collections import OrderedDict
 
+import requests
 from click import echo
 from parsel import Selector
 from prompt_toolkit import prompt, AbortAction
@@ -8,14 +11,8 @@ from prompt_toolkit.history import FileHistory
 
 from parselcli.completer import MiddleWordCompleter
 from parselcli.embed import embed_auto
-from parselcli.processors import Strip, First, UrlJoin
-
-XPATH_FUNCTIONS = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
-CSS_FUNCTIONS = ['::text', '::attr(']
-_FLAGS = ['strip', 'first', 'absolute', 'onlyfirst']
-BASE_COMPLETION = ['css', 'xpath', '-help', '-debug']
-for flag in _FLAGS:
-    BASE_COMPLETION.extend(['+'+flag, '-'+flag])
+from parselcli.processors import Strip, First, UrlJoin, Join
+from parselcli.completer import XPATH_COMPLETION, CSS_COMPLETION, BASE_COMPLETION
 
 
 def find_attributes(sel, attr):
@@ -43,13 +40,13 @@ def get_css_completion(sel):
     node_names = find_nodes(sel)
     classes = ['.' + c for c in find_attributes(sel, 'class')]
     ids = ['#' + c for c in find_attributes(sel, 'id')]
-    return node_names + classes + ids + CSS_FUNCTIONS
+    return node_names + classes + ids + CSS_COMPLETION
 
 
 def get_xpath_completion(sel):
     """generates completion items for xpath from a selector"""
     completion = find_nodes(sel)
-    return completion + XPATH_FUNCTIONS
+    return completion + XPATH_COMPLETION
 
 
 class Prompter:
@@ -57,12 +54,29 @@ class Prompter:
     Prompt Toolkit container for all interpreter functions
     """
 
-    def __init__(self, text, response=None, preferred_embed=None, start_in_css=False, flags=None):
-        self.sel = Selector(text)
+    def __init__(self, selector, response=None, preferred_embed=None, start_in_css=False, flags=None):
+        self.sel = selector
         self.response = response
         self.processors = []
         self.preferred_embed = preferred_embed
         # setup completers
+        self._init_completers(start_in_css)
+        # setup interpreter flags and commands
+        self.flags_processors = self._set_flags()
+        flags = [] or flags
+        for flag in flags:
+            self._enable_flag(flag)
+        self.commands = self._set_commands()
+
+    @classmethod
+    def from_response(cls, response, *args, **kwargs):
+        return cls(Selector(response.text), response=response, *args, **kwargs)
+
+    @classmethod
+    def from_file(cls, file, *args, **kwargs):
+        return cls(Selector(file.read()), response=None, *args, **kwargs)
+
+    def _init_completers(self, start_in_css):
         self.completer_xpath = MiddleWordCompleter(BASE_COMPLETION + get_xpath_completion(self.sel), ignore_case=True,
                                                    match_end=True,
                                                    sentence=True)
@@ -70,28 +84,36 @@ class Prompter:
                                                  match_end=True,
                                                  sentence=True)
         self.completer = self.completer_css if start_in_css else self.completer_xpath
-        # setup interpreter flags and commands
-        self.flags_processors = self._set_flags()
-        for flag in flags:
-            self._enable_flag(flag)
-        self.commands = self._set_commands()
 
     def _set_commands(self):
         return {
-            'help': self._print_help,
-            'debug': self._print_debug,
-            'embed': self._embed,
+            'help': self.cmd_help,
+            'debug': self.cmd_debug,
+            'embed': self.cmd_embed,
+            'view': self.cmd_view,
+            'fetch': self.cmd_fetch,
         }
 
     def _set_flags(self):
-        return {
-            'strip': Strip(),
-            'first': First(),
-            'onlyfirst': First(only=True),
-            'absolute': UrlJoin(self.response.url)
-        }
+        return OrderedDict([
+            ('strip', Strip()),
+            ('first', First()),
+            ('onlyfirst', First(only=True)),
+            ('absolute', UrlJoin(self.response.url)),
+            ('join', Join()),
+        ])
 
-    def _print_help(self):
+    def cmd_fetch(self, text):
+        url = text.strip()
+        print('downloading {}'.format(url))
+        self.response = requests.get(url)
+        self.sel = Selector(text=self.response.text)
+        self._init_completers(self.completer is self.completer_css)
+
+    def cmd_view(self, text):
+        webbrowser.open_new_tab(self.response.url)
+
+    def cmd_help(self, text):
         print('available commands (use -command):')
         for c in self.commands:
             print('  ' + c)
@@ -99,12 +121,12 @@ class Prompter:
         for c in self.flags_processors:
             print('  ' + c)
 
-    def _print_debug(self):
+    def cmd_debug(self, text):
         print('enabled processors:')
         for p in self.processors:
             print('  ' + type(p).__name__)
 
-    def _embed(self):
+    def cmd_embed(self, text):
         namespace = {
             'sel': self.sel,
             'response': self.response,
@@ -156,7 +178,7 @@ class Prompter:
         prompt_history = FileHistory(os.path.expanduser('~/.parsel_history'))
         while True:
             if start_in_embed:
-                self._embed()
+                self.cmd_embed(None)
                 start_in_embed = False
             text = prompt('> ', history=prompt_history,
                           auto_suggest=AutoSuggestFromHistory(),
@@ -168,14 +190,17 @@ class Prompter:
             # check flags and commands
             if text.startswith('+') or text.startswith('-'):
                 notation, text = text[0], text[1:]
-                if text in self.commands:
-                    self.commands[text]()
+                cmd = text.split(' ', 1)
+                rest = cmd[1] if len(cmd) > 1 else ''
+                cmd = cmd[0]
+                if cmd in self.commands:
+                    self.commands[cmd](rest)
                     continue
-                if text in self.flags_processors:
+                if cmd in self.flags_processors:
                     if notation == '+':
-                        self._enable_flag(text)
+                        self._enable_flag(cmd)
                     else:
-                        self._disable_flag(text)
+                        self._disable_flag(cmd)
                     continue
             if text == 'css':
                 self._completer_css()

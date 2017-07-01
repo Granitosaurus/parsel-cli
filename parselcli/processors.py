@@ -1,6 +1,11 @@
 from urllib.parse import urljoin
 
 
+class Join:
+    def __call__(self, vs):
+        return ''.join(vs)
+
+
 class Strip:
     def __call__(self, vs):
         if isinstance(vs, list):

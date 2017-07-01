@@ -20,6 +20,8 @@ from parselcli.embed import PYTHON_SHELLS
               help='enable absolute url processor flag')
 @click.option('-fonlyfirst', is_flag=True,
               help='enable only first processor flag')
+@click.option('-fjoin', is_flag=True,
+              help='enable only join processor flag')
 @click.option('-f', '--file', type=click.File('r'),
               help='input from html file instead of url')
 @click.option('-c', 'compile_css',
@@ -30,20 +32,15 @@ from parselcli.embed import PYTHON_SHELLS
               help='start in embedded python shell')
 @click.option('--shell', type=click.Choice(list(PYTHON_SHELLS.keys())),
               help='preferred embedded shell; default auto resolve in order')
-def cli(url, file, css, fstrip, ffirst, fonlyfirst, fabsolute, embed, shell, compile_css, compile_xpath):
+def cli(url, file, css, fstrip, ffirst, fjoin, fonlyfirst, fabsolute, embed, shell, compile_css, compile_xpath):
     if not file and not url:
         echo('Either url or file argument/option needs to be provided', err=True)
         return
     if compile_css or compile_xpath:
         # disable all stdout except the result
         sys.stdout = open(os.devnull, 'w')
-    if url:
-        resp = requests.get(url)
-        source = resp.text
-    else:
-        resp = None
-        source = file.read()
 
+    # Determine flags to use
     flags = {
         'strip': fstrip,
         'first': ffirst,
@@ -51,8 +48,13 @@ def cli(url, file, css, fstrip, ffirst, fonlyfirst, fabsolute, embed, shell, com
         'onlyfirst': fonlyfirst,
     }
     enabled_flags = [k for k, v in flags.items() if v]
-    prompter = Prompter(text=source, response=resp, preferred_embed=shell,
-                        start_in_css=css, flags=enabled_flags)
+    # Create prompter either from url or file
+    if url:
+        resp = requests.get(url)
+        prompter = Prompter.from_response(response=resp, preferred_embed=shell, start_in_css=css, flags=enabled_flags)
+    else:
+        prompter = Prompter.from_file(file, preferred_embed=shell, start_in_css=css, flags=enabled_flags)
+
     if compile_css:
         sys.stdout = sys.__stdout__  # enable stdout for results
         print(prompter.get_css(compile_css))

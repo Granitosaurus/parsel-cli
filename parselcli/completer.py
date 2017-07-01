@@ -1,6 +1,13 @@
 from prompt_toolkit.completion import Completion
 from prompt_toolkit.contrib.completers import WordCompleter
 
+XPATH_COMPLETION = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
+CSS_COMPLETION = ['::text', '::attr(']
+_FLAGS = ['strip', 'first', 'absolute', 'onlyfirst', 'join']
+BASE_COMPLETION = ['css', 'xpath', '-help', '-debug']
+for flag in _FLAGS:
+    BASE_COMPLETION.extend(['+' + flag, '-' + flag])
+
 
 def ends_with_part(word, text):
     for i in range(len(word)):
@@ -11,7 +18,6 @@ def ends_with_part(word, text):
 
 
 class MiddleWordCompleter(WordCompleter):
-
     def __init__(self, words, **kwargs):
         self.match_end = kwargs.pop('match_end', None)
         super().__init__(words, **kwargs)
