@@ -1,3 +1,8 @@
+[0.25]
+- add `join` processor flag for joining all values into one
+- add `fetch` command for downloading other page without exiting interpreter
+- add `view` command for opening the current page in default browser
+
 [0.24]
 - add `onlyfirst` processor flag for forcing first value despite everything
 - add `absolute` processor flag for converting urls to absolute urls
