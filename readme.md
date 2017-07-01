@@ -42,9 +42,14 @@ Parcel-cli also supports tab complete and history powered by `prompt-toolkit` (h
       help
       debug
       embed
+      view
+      fetch
     available flags (use +flag to enable and -flag to disable)
       strip
       first
+      onlyfirst
+      absolute
+      join
     > //span[@class='author']//text()
     ['Granitosaurus']
     > css
@@ -61,4 +66,4 @@ Parcel-cli also supports tab complete and history powered by `prompt-toolkit` (h
 
 ## Install
 
-    pip install git+https://github.com/Granitosaurus/parsel-cli@0.24
+    pip install git+https://github.com/Granitosaurus/parsel-cli@v0.25
