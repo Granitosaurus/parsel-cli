@@ -1,3 +1,11 @@
+[0.26]
+- add descriptions to commands and flags when -help command is called.
+- add response object when reading from file.
+- add cache requests
+- move history to XDG compatible directory (e.g. .cache/parsel)
+- rework commands and flags
+- refactor structure
+
 [0.25]
 - add `join` processor flag for joining all values into one
 - add `fetch` command for downloading other page without exiting interpreter

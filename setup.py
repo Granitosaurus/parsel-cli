@@ -1,8 +1,9 @@
 from setuptools import setup
+from parselcli.app import APP_NAME
 
 setup(
     name='parsel-cli',
-    version='0.25',
+    version='0.26',
     packages=['parselcli'],
     url='https://github.com/granitosaurus/parsel-cli',
     license='GPLv3',
@@ -12,10 +13,11 @@ setup(
     install_requires=[
         'click',
         'parsel',
-        'prompt-toolkit'
+        'prompt-toolkit',
+        'requests-cache',
     ],
-    entry_points="""
+    entry_points=f"""
         [console_scripts]
-        parsel=parselcli.cli:cli
+        {APP_NAME}=parselcli.cli:cli
     """,
 )

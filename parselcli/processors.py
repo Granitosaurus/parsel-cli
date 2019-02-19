@@ -2,27 +2,32 @@ from urllib.parse import urljoin
 
 
 class Join:
+    def __init__(self, sep=''):
+        self.sep = sep
+
     def __call__(self, vs):
-        return ''.join(vs)
+        return self.sep.join(vs)
 
 
 class Strip:
     def __call__(self, vs):
         if isinstance(vs, list):
-            return [v.strip() for v in vs]
+            return [v.strip() for v in vs if v.strip()]
         return vs.strip()
 
 
-class First:
-    """Take first element if list has only one value"""
-    def __init__(self, only=False):
-        self.only = only
+class Collapse:
+    def __call__(self, vs):
+        if isinstance(vs, list) and len(vs) == 1:
+            return vs[0]
+        return vs or ''
 
+
+class First:
+    """Take first element"""
     def __call__(self, vs):
         if isinstance(vs, list):
-            if len(vs) < 2 or self.only:
-                return vs[0] if vs else ''
-            return vs
+            return vs[0]
         return vs or ''
 
 

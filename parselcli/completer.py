@@ -1,5 +1,4 @@
-from prompt_toolkit.completion import Completion
-from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.completion import Completion, WordCompleter
 
 XPATH_COMPLETION = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
 CSS_COMPLETION = ['::text', '::attr(']
