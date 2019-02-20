@@ -88,5 +88,10 @@ See more for help:
 
     
 ## Install
+    
+    pip install parselcli
+    
+or install from github:
 
     pip install --user git+https://github.com/Granitosaurus/parsel-cli@v0.26
+    
