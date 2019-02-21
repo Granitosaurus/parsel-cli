@@ -2,7 +2,6 @@ import os
 import pathlib
 import shlex
 import webbrowser
-from collections import OrderedDict
 
 import re
 from inspect import signature
@@ -19,7 +18,7 @@ from requests import Response
 from parselcli.app import HISTORY
 from parselcli.completer import MiddleWordCompleter
 from parselcli.embed import embed_auto
-from parselcli.parsing import InputOptionParser
+from parselcli.parse import ToggleInputOptionParser
 from parselcli.processors import Strip, First, UrlJoin, Join, Collapse
 from parselcli.completer import XPATH_COMPLETION, CSS_COMPLETION, BASE_COMPLETION
 

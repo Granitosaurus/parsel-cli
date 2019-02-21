@@ -6,7 +6,7 @@ with open('readme.md') as f:
 
 setup(
     name='parselcli',
-    version='0.26',
+    version='0.26.1',
     packages=['parselcli'],
     url='https://github.com/granitosaurus/parsel-cli',
     license='GPLv3',
