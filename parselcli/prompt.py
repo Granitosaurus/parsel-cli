@@ -169,7 +169,7 @@ class Prompter:
     @property
     def option_parser(self):
         if not self._option_parser:
-            opt = InputOptionParser()
+            opt = ToggleInputOptionParser()
             for k, v in self.commands.items():
                 nargs = len(signature(v).parameters)
                 opt.add_option('-' + k, nargs=nargs)
