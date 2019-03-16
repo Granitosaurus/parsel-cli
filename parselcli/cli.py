@@ -31,6 +31,7 @@ CACHE_EXPIRY = 60 * 60  # 1 hour
 @click.option('--shell', type=click.Choice(list(PYTHON_SHELLS.keys())),
               help='preferred embedded shell; default auto resolve in order')
 def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, cache, config):
+    """Interactive shell for css and xpath selectors"""
     if not file and not url:
         echo('Either url or file argument/option needs to be provided', err=True)
         return
