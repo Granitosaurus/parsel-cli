@@ -3,8 +3,7 @@
 `parselcli` is a command line interface wrapper for [parsel](https://github.com/scrapy/parsel) package for evaluating css and xpath selection real time against web urls or local html files.  
 > Parsel is a library to extract data from HTML and XML using XPath and CSS selectors
 
-<script id="asciicast-234118" src="https://asciinema.org/a/234118.js" async></script>
-
+[![asciicast](https://asciinema.org/a/234118.svg)](https://asciinema.org/a/234118)
 
 ## Usage
 
