@@ -1,12 +1,11 @@
 from setuptools import setup
-from parselcli.app import APP_NAME
 
 with open('readme.md') as f:
     long_description = f.read()
 
 setup(
     name='parselcli',
-    version='0.26.1',
+    version='0.3.0',
     packages=['parselcli'],
     url='https://github.com/granitosaurus/parsel-cli',
     license='GPLv3',
@@ -16,6 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[
+        'toml',
         'click',
         'parsel',
         'prompt-toolkit',
@@ -23,7 +23,7 @@ setup(
     ],
     entry_points=f"""
         [console_scripts]
-        {APP_NAME}=parselcli.cli:cli
+        parsel=parselcli.cli:cli
     """,
     classifiers=[
         'Environment :: Console',

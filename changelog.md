@@ -1,3 +1,11 @@
+[0.30]
+- add full configuration toml file, e.g. `~/.config/parsel.toml`
+- rework cli: move processors as one tag,
+- add inline flags e.g.: `h1::text +join`
+- move `-view` command to `-open` and add `-view` command
+- add Len processor and `+len` flag for returning output length
+-
+
 [0.26]
 - add descriptions to commands and flags when -help command is called.
 - add response object when reading from file.

@@ -25,13 +25,14 @@ class Collapse:
 
 class First:
     """Take first element"""
+
     def __call__(self, vs):
         if isinstance(vs, list):
             return vs[0]
         return vs or ''
 
 
-class UrlJoin:
+class AbsoluteUrl:
     """Urljoin element"""
 
     def __init__(self, base):
@@ -41,3 +42,12 @@ class UrlJoin:
         if isinstance(vs, list):
             return [urljoin(self.base, v) for v in vs]
         return urljoin(self.base, vs)
+
+
+class Len:
+    """Return length"""
+
+    def __call__(self, vs):
+        return len(vs)
+
+
