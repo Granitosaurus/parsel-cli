@@ -70,6 +70,13 @@ or activated for whole session
     > +strip 
     enabled flag: strip
 
+Commands are just called as is with sometimes taking a positional argument:
+
+    > -fetch "http://some-other-url.com"
+    downloading "http://some-other-url.com"
+    > -view
+    opening document in browser
+
 ## Example
 
     $ parsel "https://github.com/granitosaurus/parsel-cli"                                                               
@@ -130,3 +137,26 @@ or install from github:
 
     pip install --user git+https://github.com/Granitosaurus/parsel-cli@v0.3.0
     
+## Config
+
+`parselcli` can be configured via `toml` configuration file found in `$XDG_HOME/parsel.toml` (usually `~/.config/parsel.toml`):
+
+    # default processors (the +flags)
+    processors = [ "collapse", "strip",]
+    # where ptpython history is located
+    history_file_css = "/home/user/.cache/parsel/history_css"
+    history_file_xpath = "/home/user/.cache/parsel/history_xpath"
+    
+    [requests]
+    # when using --cache flag for using cached responses
+    cache_expire = 86400
+    # where sqlite cache file is stored for cache
+    cache_dir = "/home/user/.cache/parsel/requests.cache"
+
+    [requests.headers]
+    # here headers can be defined for requests to avoid bot detection etc.
+    User-Agent = "parselcli web inspector"
+    # e.g. chrome on windows use
+    # User-Agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
+
+ 
