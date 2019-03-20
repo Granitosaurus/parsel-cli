@@ -54,7 +54,8 @@ def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, 
         start_in_css=not xpath,
         flags=processors,
         preferred_embed_shell=shell,
-        history_file=config['history_file']
+        history_file_css=config['history_file_css'],
+        history_file_xpath=config['history_file_xpath'],
     )
     if url:
         if cache:

@@ -12,7 +12,8 @@ CACHE_DIR = XDG_CACHE_HOME / APP_NAME
 
 DEFAULT_CONFIG = {
     'processors': ['collapse', 'strip'],
-    'history_file': str(CACHE_DIR / 'history'),
+    'history_file_css': str(CACHE_DIR / 'history_css'),
+    'history_file_xpath': str(CACHE_DIR / 'history_xpath'),
     'requests':
         {
             'headers': {
@@ -40,6 +41,7 @@ def get_config(config_dir=None):
     with open(config_dir, 'r') as f:
         config = {**DEFAULT_CONFIG, **toml.loads(f.read())}
     Path(config['requests']['cache_dir']).mkdir(exist_ok=True, parents=True)
-    Path(config['history_file']).touch(exist_ok=True)
+    Path(config['history_file_css']).touch(exist_ok=True)
+    Path(config['history_file_xpath']).touch(exist_ok=True)
     return config
 

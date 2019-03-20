@@ -88,7 +88,8 @@ class Prompter:
             response: Response = None,
             preferred_embed_shell: str = None,
             start_in_css=False,
-            history_file=None,
+            history_file_css=None,
+            history_file_xpath=None,
             flags: List = None):
         """
         :param selector:
@@ -101,7 +102,12 @@ class Prompter:
         self._flags = None
         self._commands = None
 
-        self.history_file = history_file
+        self.history_file_css = FileHistory(history_file_css)
+        self.history_file_xpath = FileHistory(history_file_xpath)
+        if start_in_css:
+            self.prompt_history = self.history_file_css
+        else:
+            self.prompt_history = self.history_file_xpath
         self.sel = selector
         self.response = response
         self.processors = []
@@ -118,17 +124,19 @@ class Prompter:
             self.enable_flag(flag)
 
     @classmethod
-    def from_response(cls, response, preferred_embed_shell=None, start_in_css=False, flags=None, history_file=None):
+    def from_response(cls, response, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None):
         return cls(
             Selector(response.text),
             response=response,
             preferred_embed_shell=preferred_embed_shell,
             start_in_css=start_in_css,
-            history_file=history_file,
-            flags=flags)
+            history_file_css=history_file_css,
+            history_file_xpath=history_file_xpath,
+            flags=flags
+        )
 
     @classmethod
-    def from_file(cls, file, preferred_embed_shell=None, start_in_css=False, flags=None, history_file=None):
+    def from_file(cls, file, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None):
         response = Response()
         response._content = file.read().encode('utf8')
         response.status_code = 200
@@ -139,7 +147,9 @@ class Prompter:
             preferred_embed_shell=preferred_embed_shell,
             start_in_css=start_in_css,
             flags=flags,
-            history_file=history_file)
+            history_file_css=history_file_css,
+            history_file_xpath=history_file_xpath,
+        )
 
     def _create_completers(self, selector):
         """Initiated auto completers based on current selector"""
@@ -300,19 +310,21 @@ class Prompter:
     def cmd_switch_to_css(self):
         print('switched to css')
         self.completer = self.completer_css
+        self.prompt_history = self.history_file_css
 
     def cmd_switch_to_xpath(self):
         print('switched to xpath')
         self.completer = self.completer_xpath
+        self.prompt_history = self.history_file_xpath
 
     def loop_prompt(self, start_in_embed=False):
         """main loop prompt"""
-        prompt_history = FileHistory(self.history_file)
         while True:
             if start_in_embed:
                 self.cmd_embed()
                 start_in_embed = False
-            text = prompt('> ', history=prompt_history,
+            text = prompt('> ',
+                          history=self.prompt_history,
                           auto_suggest=AutoSuggestFromHistory(),
                           enable_history_search=True,
                           completer=self.completer)
