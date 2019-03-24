@@ -1,5 +1,7 @@
 [0.31]
 - separate history for css and xpath selectors
+- add "-h" option for supplying extra headers
+- change default headers for something more obfuscated to avoid bot blocking
 
 [0.30]
 - add full configuration toml file, e.g. `~/.config/parsel.toml`

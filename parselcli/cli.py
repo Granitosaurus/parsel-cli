@@ -14,6 +14,9 @@ CACHE_EXPIRY = 60 * 60  # 1 hour
 
 @click.command()
 @click.argument('url', required=False)
+@click.option('-h', 'headers',
+              help='request headers, e.g. -h "user-agent=cat bot"',
+              multiple=True)
 @click.option('-xpath', is_flag=True,
               help='start in xpath mode instead of css')
 @click.option('-p', '--processors', default='',
@@ -30,8 +33,10 @@ CACHE_EXPIRY = 60 * 60  # 1 hour
               help='start in embedded python shell')
 @click.option('--shell', type=click.Choice(list(PYTHON_SHELLS.keys())),
               help='preferred embedded shell; default auto resolve in order')
-def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, cache, config):
+def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, cache, config, headers):
     """Interactive shell for css and xpath selectors"""
+    headers = [h.split('=', 1) for h in headers]
+    headers = {k: v for k, v in headers}
     if not file and not url:
         echo('Either url or file argument/option needs to be provided', err=True)
         return
@@ -62,6 +67,7 @@ def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, 
             echo('using cached version')
         cache_expire = config['requests']['cache_expire'] if cache else 0
         req_headers = {k: v for k, v in config['requests'].items() if k in ['headers']}
+        req_headers['headers'].update(headers)
         with CachedSession(config['requests']['cache_dir'], expire_after=cache_expire) as session:
             resp = session.get(url, **req_headers)
         prompter = Prompter.from_response(response=resp, **prompter_kwargs)
