@@ -13,6 +13,8 @@
       Interactive shell for css and xpath selectors
 
     Options:
+      -h TEXT                         request headers, e.g. -h "user-agent=cat
+                                      bot"
       -xpath                          start in xpath mode instead of css
       -p, --processors TEXT           comma separated processors: {}
       -f, --file FILENAME             input from html file instead of url
