@@ -5,7 +5,7 @@ with open('readme.md') as f:
 
 setup(
     name='parselcli',
-    version='0.32.0',
+    version='0.32.1',
     packages=['parselcli'],
     url='https://github.com/granitosaurus/parsel-cli',
     license='GPLv3',
@@ -20,6 +20,7 @@ setup(
         'parsel',
         'prompt-toolkit',
         'requests-cache',
+        'brotli'
     ],
     entry_points=f"""
         [console_scripts]

@@ -2,3 +2,4 @@ parsel
 requests-cache
 prompt-toolkit
 click
+brotli

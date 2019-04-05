@@ -1,3 +1,6 @@
+[0.32.1]
+- hotfix missing brotli dependency
+
 [0.32]
 - add brotli econding decompression
 
