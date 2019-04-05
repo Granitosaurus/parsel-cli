@@ -1,3 +1,6 @@
+[0.32]
+- add brotli econding decompression
+
 [0.31]
 - separate history for css and xpath selectors
 - add "-h" option for supplying extra headers

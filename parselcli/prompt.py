@@ -9,6 +9,7 @@ from inspect import signature
 from tempfile import NamedTemporaryFile
 from typing import List
 
+import brotli
 import click
 import requests
 from click import echo, BadOptionUsage, NoSuchOption, Tuple
@@ -125,8 +126,12 @@ class Prompter:
 
     @classmethod
     def from_response(cls, response, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None):
+        if 'br' in response.headers.get('Content-Encoding', ''):
+            text = brotli.decompress(response.content).decode(response.encoding)
+        else:
+            text = response.text
         return cls(
-            Selector(response.text),
+            Selector(text),
             response=response,
             preferred_embed_shell=preferred_embed_shell,
             start_in_css=start_in_css,
