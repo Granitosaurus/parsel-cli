@@ -91,6 +91,7 @@ class Prompter:
             start_in_css=False,
             history_file_css=None,
             history_file_xpath=None,
+            history_file_embed=None,
             flags: List = None):
         """
         :param selector:
@@ -105,6 +106,7 @@ class Prompter:
 
         self.history_file_css = FileHistory(history_file_css)
         self.history_file_xpath = FileHistory(history_file_xpath)
+        self.history_file_embed = history_file_embed
         if start_in_css:
             self.prompt_history = self.history_file_css
         else:
@@ -125,7 +127,7 @@ class Prompter:
             self.enable_flag(flag)
 
     @classmethod
-    def from_response(cls, response, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None):
+    def from_response(cls, response, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None, history_file_embed=None):
         if 'br' in response.headers.get('Content-Encoding', ''):
             text = brotli.decompress(response.content).decode(response.encoding)
         else:
@@ -137,6 +139,7 @@ class Prompter:
             start_in_css=start_in_css,
             history_file_css=history_file_css,
             history_file_xpath=history_file_xpath,
+            history_file_embed=history_file_embed,
             flags=flags
         )
 
@@ -243,7 +246,7 @@ class Prompter:
             'sel': self.sel,
             'response': self.response,
             'request': self.response.request if self.response else None}
-        embed_auto(namespace, preferred=self.preferred_embed)
+        embed_auto(namespace, preferred=self.preferred_embed, history_filename=self.history_file_embed)
 
     def enable_flag(self, flag):
         print('enabled flag: {}'.format(flag))

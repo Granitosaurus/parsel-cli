@@ -9,12 +9,12 @@ APP_NAME = 'parsel'
 CONFIG = XDG_CONFIG_HOME / 'parsel.toml'
 CACHE_DIR = XDG_CACHE_HOME / APP_NAME
 
-
 DEFAULT_CONFIG = {
     # default processors that are activated on startup
     'processors': ['collapse', 'strip'],
     'history_file_css': str(CACHE_DIR / 'history_css'),
     'history_file_xpath': str(CACHE_DIR / 'history_xpath'),
+    'history_file_embed': str(CACHE_DIR / 'history_ptpython'),
     'requests':
         {
             'headers': {
@@ -41,6 +41,8 @@ def init_default_config(config_dir=None):
 
 def get_config(config_dir=None):
     """returns config file from config directory. Any unset values default to DEFAULT_CONFIG configuration"""
+    # TODO get_config should ensure that config structure is up to date
+    # i.e. it should update current config with default values where they aren't present
     if not config_dir:
         config_dir = CONFIG
     if not config_dir.exists():
@@ -52,4 +54,3 @@ def get_config(config_dir=None):
     Path(config['history_file_css']).touch(exist_ok=True)
     Path(config['history_file_xpath']).touch(exist_ok=True)
     return config
-
