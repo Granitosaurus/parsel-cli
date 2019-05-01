@@ -147,7 +147,7 @@ Commands are just called as is with sometimes taking a positional argument:
     
 or install from github:
 
-    pip install --user git+https://github.com/Granitosaurus/parsel-cli@v0.32.1
+    pip install --user git+https://github.com/Granitosaurus/parsel-cli@v0.33
     
 ## Config
 
