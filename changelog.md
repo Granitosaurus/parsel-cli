@@ -1,3 +1,7 @@
+[0.33]
+- add history to embeded shell for ptpython
+- add rolling support for config that will keep config up to date with changes
+
 [0.32.1]
 - hotfix missing brotli dependency
 

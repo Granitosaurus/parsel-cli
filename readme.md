@@ -1,9 +1,19 @@
+![PyPI](https://img.shields.io/pypi/v/parselcli.svg?style=popout)
 # About
 
 `parselcli` is a command line interface wrapper for [parsel](https://github.com/scrapy/parsel) package for evaluating css and xpath selection real time against web urls or local html files.  
 > Parsel is a library to extract data from HTML and XML using XPath and CSS selectors
 
 [![asciicast](https://asciinema.org/a/234118.svg)](https://asciinema.org/a/234118)
+
+#### Features:
+
+* Supports css and xpath expression.
+* Interactive shell with autocomplete.
+* Css and xpath hints based on current webpage DOM.
+* Full input history.
+* Cache support for repeated usage.
+* Extensive and instant text processing via text processor flags.
 
 ## Usage
 
@@ -148,6 +158,7 @@ or install from github:
     # where ptpython history is located
     history_file_css = "/home/user/.cache/parsel/history_css"
     history_file_xpath = "/home/user/.cache/parsel/history_xpath"
+    history_file_embed = "/home/user/.cache/parsel/history_embed"
     
     [requests]
     # when using --cache flag for using cached responses
