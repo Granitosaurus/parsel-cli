@@ -2,6 +2,8 @@ import os
 import toml
 from pathlib import Path
 
+from parselcli.utils import lazy_dict_merge
+
 XDG_CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser()
 XDG_CACHE_HOME = Path(os.environ.get('XDG_CACHE_HOME') or "~/.cache").expanduser()
 
@@ -14,7 +16,7 @@ DEFAULT_CONFIG = {
     'processors': ['collapse', 'strip'],
     'history_file_css': str(CACHE_DIR / 'history_css'),
     'history_file_xpath': str(CACHE_DIR / 'history_xpath'),
-    'history_file_embed': str(CACHE_DIR / 'history_ptpython'),
+    'history_file_embed': str(CACHE_DIR / 'history_embed'),
     'requests':
         {
             'headers': {
@@ -39,16 +41,24 @@ def init_default_config(config_dir=None):
         toml.dump(DEFAULT_CONFIG, f)
 
 
+def update_config(config, config_dir=None):
+    if not config_dir:
+        config_dir = CONFIG
+    updated_config = lazy_dict_merge(config, DEFAULT_CONFIG)
+    with open(config_dir, 'w') as f:
+        toml.dump(DEFAULT_CONFIG, f)
+    return updated_config
+
+
 def get_config(config_dir=None):
     """returns config file from config directory. Any unset values default to DEFAULT_CONFIG configuration"""
-    # TODO get_config should ensure that config structure is up to date
-    # i.e. it should update current config with default values where they aren't present
     if not config_dir:
         config_dir = CONFIG
     if not config_dir.exists():
         init_default_config()
     with open(config_dir, 'r') as f:
-        config = {**DEFAULT_CONFIG, **toml.loads(f.read())}
+        config = toml.loads(f.read())
+    config = update_config(config, config_dir=config_dir)
     # ensure history and cache files exists
     Path(config['requests']['cache_dir']).mkdir(exist_ok=True, parents=True)
     Path(config['history_file_css']).touch(exist_ok=True)
