@@ -18,7 +18,7 @@ setup(
         'toml',
         'click',
         'parsel',
-        'prompt-toolkit',
+        'ptpython',
         'requests-cache',
         'brotli'
     ],
