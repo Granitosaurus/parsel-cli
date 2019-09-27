@@ -144,7 +144,7 @@ class Prompter:
         )
 
     @classmethod
-    def from_file(cls, file, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None):
+    def from_file(cls, file, preferred_embed_shell=None, start_in_css=False, flags=None, history_file_css=None, history_file_xpath=None, history_file_embed=None):
         response = Response()
         response._content = file.read().encode('utf8')
         response.status_code = 200
@@ -157,6 +157,7 @@ class Prompter:
             flags=flags,
             history_file_css=history_file_css,
             history_file_xpath=history_file_xpath,
+            history_file_embed=history_file_embed,
         )
 
     def _create_completers(self, selector):
