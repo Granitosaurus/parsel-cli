@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import click
 import sys
@@ -43,7 +44,7 @@ def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, 
     if compile_css or compile_xpath:
         # disable all stdout except the result
         sys.stdout = open(os.devnull, 'w')
-    config = get_config(config)
+    config = get_config(Path(config))
 
     # Determine flags to use
     processors = [p for p in processors.split(',') if p]

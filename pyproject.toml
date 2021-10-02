@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "parsel-cli"
+version = "1.0.0"
+description = "CLI interpreter for xpath/css selectors"
+readme = "README.md"
+homepage = "https://scrapecrow.com"
+repository = "https://github.com/granitosaurus/parsel-cli"
+authors = ["granitosaurus <bernardas.alisauskas@pm.me>"]
+license = "GPLv3"
+packages = [
+    { include = "parselcli" },
+]
+classifiers=[
+    'Environment :: Console',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    'Operating System :: POSIX',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Topic :: Internet',
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+parsel = "^1.6.0"
+requests-cache = "^0.8.1"
+prompt-toolkit = "^3.0.20"
+click = "^8.0.1"
+Brotli = "^1.0.9"
+toml = "^0.10.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+
+[tool.poetry.scripts]
+parsel = "parselcli.cli:cli"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

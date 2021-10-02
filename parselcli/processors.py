@@ -1,8 +1,16 @@
 from urllib.parse import urljoin
 
 
+class Nth:
+    def __init__(self, n:int) -> None:
+        self.n = int(n)
+
+    def __call__(self, vs):
+        return vs[self.n]
+
+
 class Join:
-    def __init__(self, sep=''):
+    def __init__(self, sep=""):
         self.sep = sep
 
     def __call__(self, vs):
@@ -20,7 +28,7 @@ class Collapse:
     def __call__(self, vs):
         if isinstance(vs, list) and len(vs) == 1:
             return vs[0]
-        return vs or ''
+        return vs or ""
 
 
 class First:
@@ -29,7 +37,7 @@ class First:
     def __call__(self, vs):
         if isinstance(vs, list):
             return vs[0]
-        return vs or ''
+        return vs or ""
 
 
 class AbsoluteUrl:
@@ -49,5 +57,3 @@ class Len:
 
     def __call__(self, vs):
         return len(vs)
-
-
