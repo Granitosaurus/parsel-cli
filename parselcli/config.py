@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
                 "Accept-Language": "en-US,en;q=0.9,lt;q=0.8,et;q=0.7,de;q=0.6",
             },
             'cache_expire': 86400,
-            'cache_dir': str(CACHE_DIR / 'requests.cache'),
+            'cache_file': str(CACHE_DIR / 'requests.cache'),
         }
 }
 
@@ -60,8 +60,8 @@ def get_config(config_dir=None):
         config = toml.loads(f.read())
     config = update_config(config, config_dir=config_dir)
     # ensure history and cache files exists
-    Path(config['requests']['cache_dir']).parent.mkdir(exist_ok=True, parents=True)
-    Path(config['requests']['cache_dir']).touch(exist_ok=True)
+    Path(config['requests']['cache_file']).parent.mkdir(exist_ok=True, parents=True)
+    Path(config['requests']['cache_file']).touch(exist_ok=True)
     Path(config['history_file_css']).touch(exist_ok=True)
     Path(config['history_file_xpath']).touch(exist_ok=True)
     return config

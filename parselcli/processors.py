@@ -1,15 +1,23 @@
 from urllib.parse import urljoin
 
 
-class Nth:
-    def __init__(self, n:int) -> None:
+class Processor:
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}"
+
+    def __str__(self) -> str:
+        return f"{type(self).__name__}"
+
+
+class Nth(Processor):
+    def __init__(self, n: int) -> None:
         self.n = int(n)
 
     def __call__(self, vs):
         return vs[self.n]
 
 
-class Join:
+class Join(Processor):
     def __init__(self, sep=""):
         self.sep = sep
 
@@ -17,30 +25,28 @@ class Join:
         return self.sep.join(vs)
 
 
-class Strip:
+class Strip(Processor):
     def __call__(self, vs):
         if isinstance(vs, list):
             return [v.strip() for v in vs if v.strip()]
         return vs.strip()
 
 
-class Collapse:
+class Collapse(Processor):
     def __call__(self, vs):
         if isinstance(vs, list) and len(vs) == 1:
             return vs[0]
         return vs or ""
 
 
-class First:
-    """Take first element"""
-
+class First(Processor):
     def __call__(self, vs):
         if isinstance(vs, list):
             return vs[0]
         return vs or ""
 
 
-class AbsoluteUrl:
+class AbsoluteUrl(Processor):
     """Urljoin element"""
 
     def __init__(self, base):
@@ -52,8 +58,12 @@ class AbsoluteUrl:
         return urljoin(self.base, vs)
 
 
-class Len:
+class Len(Processor):
     """Return length"""
 
     def __call__(self, vs):
         return len(vs)
+
+
+if __name__ == "__main__":
+    print([Len(), Join()])

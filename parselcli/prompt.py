@@ -18,6 +18,7 @@ from parsel import Selector
 from prompt_toolkit import prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
+from prompt_toolkit.lexers import SimpleLexer
 from requests import Response
 
 from parselcli.completer import MiddleWordCompleter
@@ -124,7 +125,7 @@ class Prompter:
         self.processors = {
             "strip": Strip,
             "collapse": Collapse,
-            "absolute": partial(AbsoluteUrl, self.response.url),
+            "absolute": partial(AbsoluteUrl, self.response.url if self.response else ""),
             "join": Join,
             "first": First,
             "n": Nth,
@@ -133,6 +134,7 @@ class Prompter:
         self.option_parser = OptionParser()
         self.options_commands = [
             Option(["--help"], is_flag=True, help="print help"),
+            Option(["--embed"], is_flag=True, help="embed repl"),
             Option(["--info"], is_flag=True, help="show context info"),
             Option(["--css"], is_flag=True, help="switch to css input"),
             Option(["--xpath"], is_flag=True, help="siwtch to xpath input"),
@@ -302,7 +304,7 @@ class Prompter:
 
     def process_data(self, data, processors=None):
         """Process data through enabled flag processors"""
-        if not processors:
+        if processors is None:
             processors = self.active_processors
         try:
             for processor in processors:
@@ -336,8 +338,11 @@ class Prompter:
         Parses commands and flags from a string
         :returns remaining_text, found_commands, found_flags_to_enable, found_flags_to_disable
         """
-        parsed, remainder, _ = self.option_parser.parse_args(shlex.split(text))
-        remainder = shlex.join(remainder).strip()
+        lex = shlex.shlex(text, posix=True)
+        lex.whitespace = " "  # we want to keep newline chars etc
+        lex.whitespace_split = True
+        parsed, remainder, _ = self.option_parser.parse_args(list(lex))
+        remainder = ' '.join(remainder).strip()
         return parsed, remainder
 
     def loop_prompt(self, start_in_embed=False):
@@ -352,19 +357,21 @@ class Prompter:
                 auto_suggest=AutoSuggestFromHistory(),
                 enable_history_search=True,
                 completer=self.completer,
+                lexer=SimpleLexer()
             )
+            text = text.replace('\\n', '\n')
             if not text:
                 continue
             processors = self.active_processors
             # check flags and commands
-            if re.findall(r"[+-]\w+", text):
+            if re.search(r"[+-]\w+", text):
                 try:
                     opts, remainder = self.parse_input(text)
                 except (BadOptionUsage, NoSuchOption) as e:
                     echo(e)
                     continue
                 # if any commands are found execute first one
-                _found_processors = []
+                _inline_processors = []
                 for name, value in opts.items():
                     if name in self.commands:
                         if value is True:
@@ -373,13 +380,13 @@ class Prompter:
                             self.commands[name](value)
                     elif name in self.processors:
                         if value is True:
-                            _found_processors.append(self.processors[name]())
+                            _inline_processors.append(self.processors[name]())
                         else:
-                            _found_processors.append(self.processors[name](value))
+                            _inline_processors.append(self.processors[name](value))
 
                 # enable temporary processors
-                if _found_processors:
-                    processors = _found_processors
+                if _inline_processors:
+                    processors = _inline_processors
                 if remainder:
                     text = remainder.strip("'")
                 else:

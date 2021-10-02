@@ -70,7 +70,7 @@ def cli(url, file, xpath, processors, embed, shell, compile_css, compile_xpath, 
         cache_expire = config['requests']['cache_expire'] if cache else 0
         req_headers = {k: v for k, v in config['requests'].items() if k in ['headers']}
         req_headers['headers'].update(headers)
-        with CachedSession(config['requests']['cache_dir'], expire_after=cache_expire) as session:
+        with CachedSession(config['requests']['cache_file'], expire_after=cache_expire) as session:
             resp = session.get(url, **req_headers)
         prompter = Prompter.from_response(response=resp, **prompter_kwargs)
     else:
