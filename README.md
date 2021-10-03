@@ -1,5 +1,7 @@
 
-# About parselcli ![PyPI](https://img.shields.io/pypi/v/parselcli.svg?style=popout)
+# About parselcli   
+
+![PyPI](https://img.shields.io/pypi/v/parselcli?style=flat-square) ![PyPi version](https://img.shields.io/pypi/pyversions/parselcli?style=flat-square) ![License](https://img.shields.io/pypi/l/parselcli?style=flat-square)
 
 `parselcli` is a command line interface wrapper for [parsel](https://github.com/scrapy/parsel) package for evaluating css and xpath selection real time against web urls or local html files.  
 
