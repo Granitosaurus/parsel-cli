@@ -1,7 +1,7 @@
 """
 contains helpers for shell embeding
 """
-# pylint: disable=C0415,W0613
+# pylint: disable=C0415,W0613,E0401
 from collections import OrderedDict
 
 
