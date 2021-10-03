@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "parsel-cli"
+name = "parselcli"
 version = "1.0.0"
 description = "CLI interpreter for xpath/css selectors"
 readme = "README.md"
