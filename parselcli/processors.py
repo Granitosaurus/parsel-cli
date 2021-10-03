@@ -1,52 +1,67 @@
+"""
+Contains processor callables for parsecli
+"""
 from urllib.parse import urljoin
 
 
 class Processor:
+    """Base class for parselcli processors"""
+
     def __repr__(self) -> str:
         return f"{type(self).__name__}"
 
 
 class Nth(Processor):
-    def __init__(self, n: int) -> None:
-        self.n = int(n)
+    """Take nth element of a list"""
 
-    def __call__(self, vs):
-        return vs[self.n]
+    def __init__(self, position: int) -> None:
+        self.position = int(position)
+
+    def __call__(self, values):
+        return values[self.position]
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.n})"
+        return f"{type(self).__name__}({self.position})"
 
 
 class Join(Processor):
+    """Join multiple values with separator"""
+
     def __init__(self, sep=""):
         self.sep = sep
 
-    def __call__(self, vs):
-        return self.sep.join(vs)
+    def __call__(self, values):
+        return self.sep.join(values)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({repr(self.sep)})"
 
 
 class Strip(Processor):
-    def __call__(self, vs):
-        if isinstance(vs, list):
-            return [v.strip() for v in vs if v.strip()]
-        return vs.strip()
+    """Strip trailing spaces"""
+
+    def __call__(self, values):
+        if isinstance(values, list):
+            return [v.strip() for v in values if v.strip()]
+        return values.strip()
 
 
 class Collapse(Processor):
-    def __call__(self, vs):
-        if isinstance(vs, list) and len(vs) == 1:
-            return vs[0]
-        return vs or ""
+    """Collapse single element lists"""
+
+    def __call__(self, values):
+        if isinstance(values, list) and len(values) == 1:
+            return values[0]
+        return values or ""
 
 
 class First(Processor):
-    def __call__(self, vs):
-        if isinstance(vs, list):
-            return vs[0]
-        return vs or ""
+    """Take first element if possible"""
+
+    def __call__(self, values, default=""):
+        if isinstance(values, list):
+            return values[0]
+        return values or default
 
 
 class AbsoluteUrl(Processor):
@@ -55,14 +70,14 @@ class AbsoluteUrl(Processor):
     def __init__(self, base):
         self.base = base
 
-    def __call__(self, vs):
-        if isinstance(vs, list):
-            return [urljoin(self.base, v) for v in vs]
-        return urljoin(self.base, vs)
+    def __call__(self, values):
+        if isinstance(values, list):
+            return [urljoin(self.base, v) for v in values]
+        return urljoin(self.base, values)
 
 
 class Len(Processor):
     """Return length"""
 
-    def __call__(self, vs):
-        return len(vs)
+    def __call__(self, values):
+        return len(values)

@@ -1,6 +1,10 @@
+"""
+contains user configuration functionality
+"""
 import os
-import toml
 from pathlib import Path
+
+import toml
 
 from parselcli.utils import lazy_dict_merge
 
@@ -14,7 +18,6 @@ CACHE_DIR = XDG_CACHE_HOME / APP_NAME
 DEFAULT_CONFIG = {
     # default processors that are activated on startup
     "warn_limit": 5000,
-    # TODO: this keeps disappearing
     "initial_input": [],
     "history_file_css": str(CACHE_DIR / "history_css"),
     "history_file_xpath": str(CACHE_DIR / "history_xpath"),
@@ -23,7 +26,8 @@ DEFAULT_CONFIG = {
         "headers": {
             # default headers most web browser use
             # using windows chrome user agent as it's the most popular one
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
             "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "en-US,en;q=0.9,lt;q=0.8,et;q=0.7,de;q=0.6",
@@ -43,11 +47,12 @@ def init_default_config(config_dir=None):
 
 
 def update_config(config, config_dir=None):
+    """update disk config with current config object"""
     if not config_dir:
         config_dir = CONFIG
     updated_config = lazy_dict_merge(config, DEFAULT_CONFIG)
     with open(config_dir, "w") as f:
-        toml.dump(DEFAULT_CONFIG, f)
+        toml.dump(updated_config, f)
     return updated_config
 
 

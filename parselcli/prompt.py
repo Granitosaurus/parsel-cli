@@ -1,3 +1,6 @@
+"""
+Contains main flow tool for parselcli and related helper functions
+"""
 import os
 import pathlib
 import re
@@ -34,7 +37,7 @@ def find_attributes(sel, attr):
     finds node attributes in a selector
     returns list of unique strings
     """
-    classes = sel.xpath("//*/@{}".format(attr)).extract()
+    classes = sel.xpath(f"//*/@{attr}").extract()
     classes = [c.strip() for cs in classes for c in cs.split()]
     return list(set(classes))
 
@@ -112,9 +115,7 @@ class Prompter:
         self.processors = {
             "strip": Strip,
             "collapse": Collapse,
-            "absolute": partial(
-                AbsoluteUrl, self.response.url if self.response else ""
-            ),
+            "absolute": partial(AbsoluteUrl, self.response.url if self.response else ""),
             "join": Join,
             "first": First,
             "n": Nth,
@@ -174,6 +175,7 @@ class Prompter:
         history_file_embed=None,
         warn_limit=None,
     ):
+        """create prompter with response object"""
         if "br" in response.headers.get("Content-Encoding", ""):
             text = brotli.decompress(response.content).decode(response.encoding)
         else:
@@ -200,8 +202,9 @@ class Prompter:
         history_file_embed=None,
         warn_limit=None,
     ):
+        """create prompter from html file"""
         response = Response()
-        response._content = file.read().encode("utf8")
+        response._content = file.read().encode("utf8")  # pylint: disable=W0212
         response.status_code = 200
         response.url = pathlib.Path(os.path.abspath(file.name)).as_uri()
         return cls(
@@ -233,16 +236,12 @@ class Prompter:
     @property
     def commands(self) -> Dict[str, Callable]:
         """commands prompter support"""
-        return {
-            name.split("cmd_")[1]: getattr(self, name)
-            for name in dir(self)
-            if name.startswith("cmd_")
-        }
+        return {name.split("cmd_")[1]: getattr(self, name) for name in dir(self) if name.startswith("cmd_")}
 
     def cmd_fetch(self, text):
         """switch current session to different url by making a new request"""
         url = text.strip()
-        print("requesting: {}".format(url))
+        echo(f"requesting: {url}")
         self.response = requests.get(url)
         self.sel = Selector(text=self.response.text)
         self._create_completers(self.sel)
@@ -253,30 +252,28 @@ class Prompter:
 
     def cmd_view(self):
         """open current response data in browser"""
-        with NamedTemporaryFile(
-            "w", encoding=self.response.encoding, delete=False, suffix=".html"
-        ) as file:
+        with NamedTemporaryFile("w", encoding=self.response.encoding, delete=False, suffix=".html") as file:
             file.write(self.response.text)
         webbrowser.open_new_tab(f"file://{file.name}")
 
     def cmd_help(self):
         """print usage help"""
-        print("Commands:")
+        echo("Commands:")
         for opt in self.options_commands:
-            print(f"{', '.join(opt.opts + opt.secondary_opts):<25}{opt.help}")
-        print("Processors:")
+            echo(f"{', '.join(opt.opts + opt.secondary_opts):<25}{opt.help}")
+        echo("Processors:")
         for opt in self.options_processors:
-            print(f"{', '.join(opt.opts + opt.secondary_opts):<25}{opt.help}")
+            echo(f"{', '.join(opt.opts + opt.secondary_opts):<25}{opt.help}")
 
     def cmd_info(self):
         """print info about current session"""
         if self.response:
-            print("{} {}".format(self.response.status_code, self.response.url))
+            echo(f"{self.response.status_code} {self.response.url}")
         else:
-            print("No response object attached")
-        print("enabled processors:")
-        for p in self.active_processors:
-            print("  " + type(p).__name__)
+            echo("No response object attached")
+        echo("enabled processors:")
+        for processor in self.active_processors:
+            echo("  " + type(processor).__name__)
 
     def cmd_embed(self):
         """Open current shell in embed repl"""
@@ -293,15 +290,20 @@ class Prompter:
 
     def cmd_css(self):
         """switch current session to css selectors"""
-        print("switched to css")
+        echo("switched to css")
         self.completer = self.completer_css
         self.prompt_history = self.history_file_css
 
     def cmd_xpath(self):
         """switch current session to xpath selectors"""
-        print("switched to xpath")
+        echo("switched to xpath")
         self.completer = self.completer_xpath
         self.prompt_history = self.history_file_xpath
+
+    def cmd_reset(self):
+        """resets current processors"""
+        echo(f"default processors: {self.active_processors}")
+        self.active_processors = []
 
     def process_data(self, data, processors=None):
         """Process data through enabled flag processors"""
@@ -310,28 +312,24 @@ class Prompter:
         try:
             for processor in processors:
                 data = processor(data)
-        except Exception as e:
-            print(e)
+        except Exception as exc:  # pylint: disable=W0703
+            echo(exc)
         return data
 
     def get_xpath(self, text, processors=None):
         """Tries to extract xpath from a selector"""
         try:
-            return self.process_data(
-                self.sel.xpath(text).extract(), processors=processors
-            )
-        except Exception as f:
-            echo(f'E:"{text}": {f}')
+            return self.process_data(self.sel.xpath(text).extract(), processors=processors)
+        except Exception as exc:  # pylint: disable=W0703
+            echo(f'E:"{text}": {exc}')
             return self.process_data([], processors=processors)
 
     def get_css(self, text, processors=None):
         """Tries to extract css from a selector"""
         try:
-            return self.process_data(
-                self.sel.css(text).extract(), processors=processors
-            )
-        except Exception as f:
-            echo(f'E:"{text}": {f}')
+            return self.process_data(self.sel.css(text).extract(), processors=processors)
+        except Exception as exc:  # pylint: disable=W0703
+            echo(f'E:"{text}": {exc}')
             return self.process_data([], processors=processors)
 
     def parse_input(self, text: str):
@@ -370,7 +368,7 @@ class Prompter:
                 continue
             echo(self.readline(text))
 
-    def readline(self, text: str) -> str:
+    def readline(self, text: str) -> str:  # pylint: disable=R0912
         """
         read single input line and do one/many of following:
         - execute css or xpath expression
@@ -386,8 +384,8 @@ class Prompter:
             log.debug("line has -- options - extracting details")
             try:
                 opts, remainder = self.parse_input(text)
-            except (BadOptionUsage, NoSuchOption) as e:
-                echo(e)
+            except (BadOptionUsage, NoSuchOption) as exc:
+                echo(exc)
                 return
             # if any commands are found execute first one
             _inline_processors = []

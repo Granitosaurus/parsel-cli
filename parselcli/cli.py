@@ -1,38 +1,40 @@
+"""
+contains command line interface functionality
+"""
+# pylint: disable=E1120,R0914
 import os
+import sys
 from pathlib import Path
 
 import click
-import sys
 from click import echo
-from requests_cache import CachedSession
 from loguru import logger as log
+from requests_cache import CachedSession
 
-from parselcli.config import get_config, CONFIG
-from parselcli.prompt import Prompter
+from parselcli.config import CONFIG, get_config
 from parselcli.embed import PYTHON_SHELLS
+from parselcli.prompt import Prompter
 
 CACHE_EXPIRY = 60 * 60  # 1 hour
 
 
 def setup_logging(verbosity: int = 0):
+    """setup logging based on verbosity"""
     level = {0: "ERROR", 1: "INFO", 2: "DEBUG", 3: "DEBUG"}[verbosity]
     log.remove()
     log.add(
         sys.stderr,
         level=level,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss.S}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>: <level>{message}</level>",
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.S}</green> | <level>{level: <8}</level> "
+        "| <cyan>{name}</cyan>:<cyan>{function}</cyan>: <level>{message}</level>",
     )
 
 
 @click.command()
 @click.argument("url", required=False)
-@click.option(
-    "-h", "headers", help='request headers, e.g. -h "user-agent=cat bot"', multiple=True
-)
+@click.option("-h", "headers", help='request headers, e.g. -h "user-agent=cat bot"', multiple=True)
 @click.option("-xpath", is_flag=True, help="start in xpath mode instead of css")
-@click.option(
-    "-f", "--file", type=click.File("r"), help="input from html file instead of url"
-)
+@click.option("-f", "--file", type=click.File("r"), help="input from html file instead of url")
 @click.option("-c", "compile_css", help="compile css and return it")
 @click.option("-x", "compile_xpath", help="compile xpath and return it")
 @click.option("-i", "initial_input", help="initial input", multiple=True)
@@ -63,14 +65,13 @@ def cli(
 ):
     """Interactive shell for css and xpath selectors"""
     setup_logging(verbosity)
-    headers = [h.split("=", 1) for h in headers]
-    headers = {k: v for k, v in headers}
+    headers = dict([h.split("=", 1) for h in headers])
     if not file and not url:
         echo("Either url or file argument/option needs to be provided", err=True)
         return
     if compile_css or compile_xpath:
         # disable all stdout except the result
-        sys.stdout = open(os.devnull, "w")
+        sys.stdout = open(os.devnull, "w")  # pylint: disable=R1732
     log.debug(f"using config from {config}")
     config = get_config(Path(config))
     log.debug(f"config values: {config}")
@@ -91,13 +92,11 @@ def cli(
             echo(f"requesting: {url}")
         cache_expire = config["requests"]["cache_expire"] if cache else 0
         req_config = {k: v for k, v in config["requests"].items() if k in ["headers"]}
-        log.debug(f"inferred headers from config: {req_config['headers']}") 
-        log.debug(f"inferred headers from cli: {headers}") 
+        log.debug(f"inferred headers from config: {req_config['headers']}")
+        log.debug(f"inferred headers from cli: {headers}")
         headers = {**req_config["headers"], **headers}
-        log.debug(f"using combined headers: {headers}") 
-        with CachedSession(
-            config["requests"]["cache_file"], expire_after=cache_expire
-        ) as session:
+        log.debug(f"using combined headers: {headers}")
+        with CachedSession(config["requests"]["cache_file"], expire_after=cache_expire) as session:
             resp = session.get(url, headers=headers)
         prompter = Prompter.from_response(response=resp, **prompter_kwargs)
     else:
@@ -110,12 +109,12 @@ def cli(
         for line in initial_input:
             prompter.readline(line)
     if compile_css:
-        log.debug(f'compiling css "{compile_css}" and exiting')  
+        log.debug(f'compiling css "{compile_css}" and exiting')
         sys.stdout = sys.__stdout__  # enable stdout for results
         echo(prompter.get_css(compile_css))
         return
     if compile_xpath:
-        log.debug(f'compiling xpath "{compile_xpath}" and exiting')  
+        log.debug(f'compiling xpath "{compile_xpath}" and exiting')
         sys.stdout = sys.__stdout__
         echo(prompter.get_xpath(compile_xpath))
         return

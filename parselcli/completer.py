@@ -1,3 +1,6 @@
+"""
+contains tab completion functionality for prompt-toolkit input
+"""
 from prompt_toolkit.completion import Completion, WordCompleter
 
 XPATH_COMPLETION = [
@@ -16,6 +19,7 @@ for flag in _FLAGS:
 
 
 def ends_with_part(word, text):
+    """check whether text ends in a word"""
     for i in range(len(word)):
         if not word[:-i]:
             continue
@@ -24,6 +28,8 @@ def ends_with_part(word, text):
 
 
 class MiddleWordCompleter(WordCompleter):
+    """completer that considers middle of the word"""
+
     def __init__(self, words, **kwargs):
         self.match_end = kwargs.pop("match_end", None)
         super().__init__(words, **kwargs)

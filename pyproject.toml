@@ -24,7 +24,7 @@ classifiers=[
 
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 parsel = "^1.6.0"
 requests-cache = "^0.8.1"
 prompt-toolkit = "^3.0.20"
@@ -35,9 +35,31 @@ loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
+taskipy = "^1.9.0"
+black = "^21.9b0"
+pylint = "^2.11.1"
+flake8 = "^3.9.2"
+
+[tool.black]
+line-length = 120
+target-version = ['py36', 'py37', 'py38', 'py39']
 
 [tool.poetry.scripts]
 parsel = "parselcli.cli:cli"
+
+[tool.taskipy.settings]
+use_vars = true
+
+[tool.taskipy.variables]
+pkg = "parselcli"
+
+[tool.taskipy.tasks]
+test = "pytest tests/"
+fmt = "black --check {pkg}"
+lint = "pylint {pkg}"
+flake = "flake8 {pkg}"
+check = "task fmt && task flake && task lint"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

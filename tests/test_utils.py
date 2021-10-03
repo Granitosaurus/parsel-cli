@@ -7,6 +7,10 @@ def test_lazy_dict_merge():
             {'foo': '1'}, {'bar': '2'},
             {'foo': '1', 'bar': '2'}
         ),
+        (  # t
+            {'foo': '1'}, {'foo': '2'},
+            {'foo': '1'}
+        ),
         (  # existing key
             {'foo': '1'}, {'bar': '2', 'foo': '3'},
             {'foo': '1', 'bar': '2'}

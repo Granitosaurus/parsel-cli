@@ -1,3 +1,7 @@
+"""
+contains helpers for shell embeding
+"""
+# pylint: disable=C0415,W0613
 from collections import OrderedDict
 
 
@@ -33,11 +37,8 @@ def embed_standard_shell(namespace=None, banner="", history_filename=None):
     try:  # readline module is only available on unix systems
         import readline
     except ImportError:
-        pass
-    else:
-        import rlcompleter
-
         readline.parse_and_bind("tab:complete")
+
     code.interact(banner=banner, local=namespace)
 
 
@@ -52,15 +53,18 @@ PYTHON_SHELLS = OrderedDict(
 
 
 def embed_auto(namespace=None, preferred=None, history_filename=None):
+    """
+    Detect and embed first shell available in priority configuration
+    """
     if preferred:
         try:
             PYTHON_SHELLS[preferred](namespace, history_filename=history_filename)
             return
         except ImportError:
             print("Could not import preferred shell, fallback to defaults")
-    for k, v in PYTHON_SHELLS.items():
+    for shell_callable in PYTHON_SHELLS.values():
         try:
-            v(namespace, history_filename=history_filename)
+            shell_callable(namespace, history_filename=history_filename)
         except ImportError:
             continue
         break

@@ -1,3 +1,6 @@
+"""
+Utility functions used by parsecli
+"""
 from copy import deepcopy
 
 
@@ -14,12 +17,12 @@ def lazy_dict_merge(root, update):
     {'foo': '1', 'bar': '2'}
     """
     result = deepcopy(root)
-    for k, v in update.items():
-        if k not in root:
-            result[k] = v
+    for key, value in update.items():
+        if key not in root:
+            result[key] = value
             continue
-        if isinstance(root[k], dict) and isinstance(update[k], dict):
-            result[k] = lazy_dict_merge(root[k], update[k])
+        if isinstance(root[key], dict) and isinstance(update[key], dict):
+            result[key] = lazy_dict_merge(root[key], update[key])
             continue
-        result[k] = root[k]
+        result[key] = root[key]
     return result
