@@ -1,11 +1,18 @@
 from prompt_toolkit.completion import Completion, WordCompleter
 
-XPATH_COMPLETION = ['text()', 'contains(', 're:test(', 'following-sibling(', 'position()', 'last()']
-CSS_COMPLETION = ['::text', '::attr(']
-_FLAGS = ['strip', 'first', 'absolute', 'onlyfirst', 'join']
-BASE_COMPLETION = ['css', 'xpath', '-help', '-debug']
+XPATH_COMPLETION = [
+    "text()",
+    "contains(",
+    "re:test(",
+    "following-sibling(",
+    "position()",
+    "last()",
+]
+CSS_COMPLETION = ["::text", "::attr("]
+_FLAGS = ["strip", "first", "absolute", "onlyfirst", "join"]
+BASE_COMPLETION = ["css", "xpath", "-help", "-debug"]
 for flag in _FLAGS:
-    BASE_COMPLETION.extend(['+' + flag, '-' + flag])
+    BASE_COMPLETION.extend(["+" + flag, "-" + flag])
 
 
 def ends_with_part(word, text):
@@ -18,7 +25,7 @@ def ends_with_part(word, text):
 
 class MiddleWordCompleter(WordCompleter):
     def __init__(self, words, **kwargs):
-        self.match_end = kwargs.pop('match_end', None)
+        self.match_end = kwargs.pop("match_end", None)
         super().__init__(words, **kwargs)
 
     def get_completions(self, document, complete_event):
@@ -28,7 +35,7 @@ class MiddleWordCompleter(WordCompleter):
             word_before_cursor = word_before_cursor.lower()
 
         def word_matches(word):
-            """ True when the word before the cursor matches. """
+            """True when the word before the cursor matches."""
             if self.ignore_case:
                 word = word.lower()
             return ends_with_part(word, word_before_cursor)
@@ -38,5 +45,5 @@ class MiddleWordCompleter(WordCompleter):
         matches = sorted(matches, key=lambda v: v[1], reverse=True)
         for m in matches:
             word, length = m
-            display_meta = self.meta_dict.get(word, '')
+            display_meta = self.meta_dict.get(word, "")
             yield Completion(word, -length, display_meta=display_meta)

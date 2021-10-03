@@ -2,9 +2,38 @@
 # About parselcli ![PyPI](https://img.shields.io/pypi/v/parselcli.svg?style=popout)
 
 `parselcli` is a command line interface wrapper for [parsel](https://github.com/scrapy/parsel) package for evaluating css and xpath selection real time against web urls or local html files.  
+
 > Parsel is a library to extract data from HTML and XML using XPath and CSS selectors
 
-[![asciicast](https://asciinema.org/a/234118.svg)](https://asciinema.org/a/234118)
+## Example Usage
+
+Calling command `parsel` with any http url will drop terminal into prompt. 
+In the prompt css and xpath selector can be entered together with commands and processing options
+
+```
+$ parsel "https://github.com/granitosaurus/parsel-cli"
+> h1::text
+['\n    ', '\n  ', '\n  ', '\n  ', '\n\n  ', '\n', 'About parselcli ']
+> --xpath
+> //h1/text()
+['\n    ', '\n  ', '\n  ', '\n  ', '\n\n  ', '\n', 'About parselcli ']
+> --css
+> --join --strip
+default processors: [Join, Strip]
+> h1::text
+About parselcli
+> h1::text --len
+7
+> --xpath
+switched to xpath
+default processors: [Join, Strip]
+> //h1/text()
+About parselcli
+> --css
+switched to css
+default processors: [Join, Strip]
+```
+ 
 
 #### Features:
 
@@ -15,7 +44,7 @@
 * Cache support for repeated usage.
 * Extensive and instant text processing via text processor flags.
 
-## Usage
+## Details
 
     $ parsel --help                                                                                                      
     Usage: parsel [OPTIONS] [URL]
@@ -47,27 +76,7 @@ Interpreter also has auto complete and suggestions for selectors \[in progress\]
 The interpreter also supports commands and embedding of `python`, `ptpython`, `ipython` and `bpython` shells.
 Command can be called with `-` prefix. List of available commands can be found by calling `-help` command (see Example section).
 
-## Example Usage
 
-```
-> h1::text
-['\n    ', '\n  ', '\n  ', '\n  ', '\n\n  ', '\n', 'About parselcli ']
-> --join --strip
-default processors: [Join, Strip]
-> h1::text
-About parselcli
-> h1::text --len
-7
-> --xpath
-switched to xpath
-default processors: [Join, Strip]
-> //h1/text()
-About parselcli
-> --css
-switched to css
-default processors: [Join, Strip]
-```
- 
 
 ### Processors and Commands
 

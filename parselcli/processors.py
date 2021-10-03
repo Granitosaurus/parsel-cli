@@ -5,9 +5,6 @@ class Processor:
     def __repr__(self) -> str:
         return f"{type(self).__name__}"
 
-    def __str__(self) -> str:
-        return f"{type(self).__name__}"
-
 
 class Nth(Processor):
     def __init__(self, n: int) -> None:
@@ -16,6 +13,9 @@ class Nth(Processor):
     def __call__(self, vs):
         return vs[self.n]
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self.n})"
+
 
 class Join(Processor):
     def __init__(self, sep=""):
@@ -23,6 +23,9 @@ class Join(Processor):
 
     def __call__(self, vs):
         return self.sep.join(vs)
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({repr(self.sep)})"
 
 
 class Strip(Processor):
@@ -63,7 +66,3 @@ class Len(Processor):
 
     def __call__(self, vs):
         return len(vs)
-
-
-if __name__ == "__main__":
-    print([Len(), Join()])
