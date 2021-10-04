@@ -102,13 +102,13 @@ Command can be called with `-` prefix. List of available commands can be found b
     --collapse, -c           collapse single element lists
     --join, -j               join results
     --join-with, -J          join results with specified character
-    -n                       take n-th element
+    -n  <number>             take n-th element
 
 Commands can be called at any point in the prompter:
 
-    > -fetch "http://some-other-url.com"
-    downloading "http://some-other-url.com"
-    > -view
+    > --fetch "http://some-other-url.com"
+    requesting "http://some-other-url.com"
+    > --view
     opening document in browser
 
 Processor options can be either activated for specific prompt:
@@ -127,14 +127,14 @@ Or can be set for current session:
     
 or install from github:
 
-    pip install --user git+https://github.com/Granitosaurus/parsel-cli@v0.33
+    pip install --user git+https://github.com/Granitosaurus/parsel-cli@1.0.0
     
 ## Config
 
 `parselcli` can be configured via `toml` configuration file found in `$XDG_HOME/parsel.toml` (usually `~/.config/parsel.toml`):
 
-    # default processors (the +flags)
-    processors = [ "collapse", "strip",]
+    # input on parsel launch - usually used to enable session processors
+    initial_input = [ "--collapse --strip"]
     # where ptpython history is located
     history_file_css = "/home/user/.cache/parsel/history_css"
     history_file_xpath = "/home/user/.cache/parsel/history_xpath"
