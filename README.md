@@ -82,7 +82,7 @@ Command can be called with `-` prefix. List of available commands can be found b
 
 ### Processors and Commands
 
-`parsecli` supports processors and commands in shell for advance usage:
+`parselcli` supports processors and commands in shell for advance usage:
 
     $ parsel "https://github.com/granitosaurus/parsel-cli"                                                               
     > --help                                                                                                              
