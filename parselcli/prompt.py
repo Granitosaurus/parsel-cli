@@ -79,6 +79,9 @@ class Prompter:
         history_file_xpath=None,
         history_file_embed=None,
         warn_limit=None,
+        color_theme="ansi_light",
+        color=True,
+        formatting=True,
     ):
         """
         :param selector:
@@ -91,7 +94,9 @@ class Prompter:
         self._flags = None
         self._commands = None
         self.console = Console()
-        self.color_theme = "ansi_light"
+        self.color_theme = color_theme
+        self.color = color
+        self.formatting = formatting
 
         self.warn_limit = 2000 if warn_limit is None else warn_limit
         self.history_file_css = FileHistory(history_file_css)
@@ -174,6 +179,9 @@ class Prompter:
         history_file_xpath=None,
         history_file_embed=None,
         warn_limit=None,
+        color_theme="ansi_light",
+        color=True,
+        formatting=True,
     ):
         """create prompter with response object"""
         if "br" in response.headers.get("Content-Encoding", ""):
@@ -189,6 +197,9 @@ class Prompter:
             history_file_xpath=history_file_xpath,
             history_file_embed=history_file_embed,
             warn_limit=warn_limit,
+            color_theme=color_theme,
+            color=color,
+            formatting=formatting,
         )
 
     @classmethod
@@ -201,6 +212,9 @@ class Prompter:
         history_file_xpath=None,
         history_file_embed=None,
         warn_limit=None,
+        color_theme="ansi_light",
+        color=True,
+        formatting=True,
     ):
         """create prompter from html file"""
         response = Response()
@@ -216,6 +230,9 @@ class Prompter:
             history_file_xpath=history_file_xpath,
             history_file_embed=history_file_embed,
             warn_limit=warn_limit,
+            color_theme=color_theme,
+            color=color,
+            formatting=formatting,
         )
 
     def _create_completers(self, selector):
@@ -377,16 +394,19 @@ class Prompter:
         for element in output:
             if not element:
                 continue
-            if re.search("^<.+?>", element):
-                log.debug("identified output as html -> applying formatting and color")
-                soup = BeautifulSoup(element, features="lxml")
-                result = soup.html.body.next.prettify()
+            if self.formatting and re.search("^<.+?>", element):
+                log.debug("identified output as html and formatting enabled: formatting")
+                if self.formatting:
+                    soup = BeautifulSoup(element, features="lxml")
+                    element = soup.html.body.next.prettify()
+            if self.color:
+                log.debug(f"color enabled: applying color: {self.color_theme}")
                 self.console.print(
-                    Syntax(result, "html", tab_size=2, theme=self.color_theme),
+                    Syntax(element, "html", tab_size=2, theme=self.color_theme),
                     soft_wrap=True,
                 )
             else:
-                self.console.print(element, soft_wrap=True)
+                self.console.print(element, soft_wrap=True, highlight=False)
 
     def readline(self, text: str) -> str:  # pylint: disable=R0912
         """

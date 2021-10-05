@@ -17,6 +17,9 @@ CACHE_DIR = XDG_CACHE_HOME / APP_NAME
 
 DEFAULT_CONFIG = {
     # default processors that are activated on startup
+    "disable_color": False,
+    "disable_formatting": False,
+    "theme": "ansi_dark",
     "warn_limit": 5000,
     "initial_input": [],
     "history_file_css": str(CACHE_DIR / "history_css"),
