@@ -97,6 +97,8 @@ class Prompter:
         self.color_theme = color_theme
         self.color = color
         self.formatting = formatting
+        self.raw_output = False
+        self.pretty_output = True
 
         self.warn_limit = 2000 if warn_limit is None else warn_limit
         self.history_file_css = FileHistory(history_file_css)
@@ -129,6 +131,9 @@ class Prompter:
         self.option_parser = OptionParser()
         self.options_commands = [
             Option(["--help"], is_flag=True, help="print help"),
+            Option(["--raw"], is_flag=True, help="show raw output"),
+            Option(["--pretty"], is_flag=True, help="show pretty output"),
+            Option(["--reset"], is_flag=True, help="reset processors"),
             Option(["--embed"], is_flag=True, help="embed repl"),
             Option(["--info"], is_flag=True, help="show context info"),
             Option(["--css"], is_flag=True, help="switch to css input"),
@@ -319,8 +324,20 @@ class Prompter:
 
     def cmd_reset(self):
         """resets current processors"""
-        echo(f"default processors: {self.active_processors}")
         self.active_processors = []
+        echo(f"active processors: {self.active_processors}")
+
+    def cmd_raw(self):
+        """set output to raw format"""
+        self.raw_output = True
+        self.pretty_output = False
+        echo("raw output enabled")
+
+    def cmd_pretty(self):
+        """set output to pretty format (default)"""
+        self.pretty_output = True
+        self.raw_output = False
+        echo("pretty output enabled")
 
     def process_data(self, data, processors=None):
         """Process data through enabled flag processors"""
@@ -389,12 +406,18 @@ class Prompter:
 
     def show_output(self, output: Union[str, List]):
         """show output"""
+        if self.raw_output and output is not None:
+            self.console.print(
+                repr(output),
+            )
+            return
         if not isinstance(output, list):
             output = [output]
         for element in output:
             if not element:
                 continue
-            if self.formatting and re.search("^<.+?>", element):
+            is_html = bool(re.search("^<.+?>", element))
+            if self.formatting and is_html:
                 log.debug("identified output as html and formatting enabled: formatting")
                 if self.formatting:
                     soup = BeautifulSoup(element, features="lxml")
@@ -402,11 +425,11 @@ class Prompter:
             if self.color:
                 log.debug(f"color enabled: applying color: {self.color_theme}")
                 self.console.print(
-                    Syntax(element, "html", tab_size=2, theme=self.color_theme),
+                    Syntax(element if is_html else repr(element), "html", tab_size=2, theme=self.color_theme),
                     soft_wrap=True,
                 )
             else:
-                self.console.print(element, soft_wrap=True, highlight=False)
+                self.console.print(repr(element), soft_wrap=True, highlight=False)
 
     def readline(self, text: str) -> str:  # pylint: disable=R0912
         """
@@ -455,7 +478,7 @@ class Prompter:
             elif processors:
                 log.debug(f"session processors changed: {processors}")
                 self.active_processors = processors
-                echo(f"default processors: {self.active_processors}")
+                echo(f"active processors: {self.active_processors}")
                 return
             # no processors and no remainder -> single command run
             else:
