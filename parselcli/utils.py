@@ -1,7 +1,9 @@
 """
 Utility functions used by parsecli
 """
+# pylint: disable=I1101
 from copy import deepcopy
+from lxml import etree
 
 
 def lazy_dict_merge(root, update):
@@ -25,4 +27,17 @@ def lazy_dict_merge(root, update):
             result[key] = lazy_dict_merge(root[key], update[key])
             continue
         result[key] = root[key]
+    return result
+
+
+def prettify_html_lxml(element):
+    """Prettify html by using lxml pretty_print functionality"""
+    parser = etree.HTMLParser(remove_blank_text=True)
+    as_node = etree.fromstring(element, parser)[0]  # remove <html> tag
+    result = etree.tostring(as_node, encoding="unicode", pretty_print=True)
+    # remove <body> wrapper
+    result = result.split("<body>", 1)[1].rsplit("</body>", 1)[0].strip()
+    result, *tail = result.rsplit("\n", 1)
+    if tail:
+        result += "\n" + tail[0].strip()
     return result

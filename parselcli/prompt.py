@@ -1,6 +1,4 @@
-"""
-Contains main flow tool for parselcli and related helper functions
-"""
+""" Contains main flow tool for parselcli and related helper functions """
 import os
 import pathlib
 import re
@@ -8,28 +6,28 @@ import shlex
 import webbrowser
 from functools import partial
 from tempfile import NamedTemporaryFile
-from typing import Callable, Dict
+from typing import Callable, Dict, List, Union
 
 import brotli
 import click
 import requests
+from bs4 import BeautifulSoup
 from click import BadOptionUsage, NoSuchOption, Option, OptionParser, echo
+from loguru import logger as log
 from parsel import Selector
 from prompt_toolkit import prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import SimpleLexer
 from requests import Response
-from loguru import logger as log
+from rich.console import Console
+from rich.syntax import Syntax
 
-from parselcli.completer import (
-    BASE_COMPLETION,
-    CSS_COMPLETION,
-    XPATH_COMPLETION,
-    MiddleWordCompleter,
-)
+from parselcli.completer import BASE_COMPLETION, CSS_COMPLETION, XPATH_COMPLETION, MiddleWordCompleter
 from parselcli.embed import embed_auto
 from parselcli.processors import AbsoluteUrl, Collapse, First, Join, Len, Nth, Strip
+
+echo = partial(echo, err=True)
 
 
 def find_attributes(sel, attr):
@@ -92,6 +90,8 @@ class Prompter:
         self._option_parser = None
         self._flags = None
         self._commands = None
+        self.console = Console()
+        self.color_theme = "ansi_light"
 
         self.warn_limit = 2000 if warn_limit is None else warn_limit
         self.history_file_css = FileHistory(history_file_css)
@@ -271,7 +271,7 @@ class Prompter:
             echo(f"{self.response.status_code} {self.response.url}")
         else:
             echo("No response object attached")
-        echo("enabled processors:")
+        echo("Enabled processors:")
         for processor in self.active_processors:
             echo("  " + type(processor).__name__)
 
@@ -366,7 +366,27 @@ class Prompter:
                 return
             if not text:
                 continue
-            echo(self.readline(text))
+            result = self.readline(text)
+            log.debug(f"processed line input to: {result!r}")
+            self.show_output(result)
+
+    def show_output(self, output: Union[str, List]):
+        """show output"""
+        if not isinstance(output, list):
+            output = [output]
+        for element in output:
+            if not element:
+                continue
+            if re.search("^<.+?>", element):
+                log.debug("identified output as html -> applying formatting and color")
+                soup = BeautifulSoup(element, features="lxml")
+                result = soup.html.body.next.prettify()
+                self.console.print(
+                    Syntax(result, "html", tab_size=2, theme=self.color_theme),
+                    soft_wrap=True,
+                )
+            else:
+                self.console.print(element, soft_wrap=True)
 
     def readline(self, text: str) -> str:  # pylint: disable=R0912
         """

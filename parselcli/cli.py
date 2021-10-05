@@ -1,8 +1,9 @@
 """
-contains command line interface functionality
+Contains command line interface functionality.
+This is the entrypoint for parselcli cli app.
 """
 # pylint: disable=E1120,R0914
-import os
+from functools import partial
 import sys
 from pathlib import Path
 
@@ -17,9 +18,11 @@ from parselcli.prompt import Prompter
 
 CACHE_EXPIRY = 60 * 60  # 1 hour
 
+echo = partial(echo, err=True)
+
 
 def setup_logging(verbosity: int = 0):
-    """setup logging based on verbosity"""
+    """setup logging based on verbosity."""
     level = {0: "ERROR", 1: "INFO", 2: "DEBUG", 3: "DEBUG"}[verbosity]
     log.remove()
     log.add(
@@ -67,11 +70,11 @@ def cli(
     setup_logging(verbosity)
     headers = dict([h.split("=", 1) for h in headers])
     if not file and not url:
-        echo("Either url or file argument/option needs to be provided", err=True)
+        echo("Either url or file argument/option needs to be provided")
         return
-    if compile_css or compile_xpath:
-        # disable all stdout except the result
-        sys.stdout = open(os.devnull, "w")  # pylint: disable=R1732
+    # if compile_css or compile_xpath:
+    # disable all stdout except the result
+    # sys.stdout = open(os.devnull, "w")  # pylint: disable=R1732
     log.debug(f"using config from {config}")
     config = get_config(Path(config))
     log.debug(f"config values: {config}")
@@ -110,13 +113,11 @@ def cli(
             prompter.readline(line)
     if compile_css:
         log.debug(f'compiling css "{compile_css}" and exiting')
-        sys.stdout = sys.__stdout__  # enable stdout for results
-        echo(prompter.get_css(compile_css))
+        prompter.show_output(prompter.readline(compile_css + " --css"))
         return
     if compile_xpath:
         log.debug(f'compiling xpath "{compile_xpath}" and exiting')
-        sys.stdout = sys.__stdout__
-        echo(prompter.get_xpath(compile_xpath))
+        prompter.show_output(prompter.get_xpath(compile_xpath))
         return
     log.debug("starting prompt loop")
     prompter.loop_prompt(start_in_embed=embed)
