@@ -51,7 +51,7 @@ def test_Prompter_readline_cmd_help(capfd):
     result = p.readline("--help")
     assert result is None
     # should print out commands and processors
-    out = capfd.readouterr().out
+    out = capfd.readouterr().err
     assert "Commands:" in out
     assert "Processors:" in out
 
@@ -61,5 +61,5 @@ def test_Prompter_readline_cmd_info(capfd):
     result = p.readline("--info")
     assert result is None
     # should print out commands and processors
-    out = capfd.readouterr().out
-    assert "enabled processors:" in out
+    out = capfd.readouterr().err
+    assert "Enabled processors:" in out
