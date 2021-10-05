@@ -1,5 +1,5 @@
 """
-Contains processor callables for parsecli
+Contains processor callables for parselcli
 """
 from urllib.parse import urljoin
 

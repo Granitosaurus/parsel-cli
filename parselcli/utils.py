@@ -1,5 +1,5 @@
 """
-Utility functions used by parsecli
+Utility functions used by parselcli
 """
 # pylint: disable=I1101
 from copy import deepcopy
