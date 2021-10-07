@@ -26,7 +26,7 @@ In the prompt css and xpath selector can be entered together with commands and p
 ```
 $ parsel "https://github.com/granitosaurus/parsel-cli"
 
-# help command is always there
+# help command is always there to show available commands and processor flags
 > help
 Commands:
 --help                   print help

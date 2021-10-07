@@ -1,3 +1,21 @@
+[1.1.0]
+- add many new processors:
+    ```
+    --pretty, -p             pretty format html
+    --slice, -[              take slice
+    --re                     filter values by regex
+    --repr, -r               represent output (e.g. show newline chars)
+    -n                       take n-th element
+    ```
+- rework output and add coloring
+- autocomplete improvements
+- lots of bug fixes
+
+[1.0.0]
+- full rework and update with newest dependancies (request, parsel, click)
+- rework commands to `--option` option format
+- rework processors
+
 [0.33]
 - add history to embeded shell for ptpython
 - add rolling support for config that will keep config up to date with changes
