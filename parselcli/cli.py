@@ -43,6 +43,7 @@ def setup_logging(verbosity: int = 0):
 @click.option("-i", "initial_input", help="initial input", multiple=True)
 @click.option("--cache", help="cache requests", is_flag=True)
 @click.option("--no-color", help="disable html output colors", is_flag=True)
+@click.option("--vi-mode", help="enable vi-mode for input", is_flag=True)
 @click.option("--warn-limit", help="", type=click.INT)
 @click.option("--config", help="config file", default=CONFIG, show_default=True)
 @click.option("--embed", is_flag=True, help="start in embedded python shell")
@@ -67,6 +68,7 @@ def cli(
     warn_limit,
     verbosity,
     no_color,
+    vi_mode,
 ):
     """Interactive shell for css and xpath selectors"""
     setup_logging(verbosity)
@@ -74,13 +76,9 @@ def cli(
     if not file and not url:
         echo("Either url or file argument/option needs to be provided")
         return
-    # if compile_css or compile_xpath:
-    # disable all stdout except the result
-    # sys.stdout = open(os.devnull, "w")  # pylint: disable=R1732
     log.debug(f"using config from {config}")
     config = get_config(Path(config))
     log.debug(f"config values: {config}")
-    no_color = not config["color"] or no_color
 
     # Create prompter either from url or file
     prompter_kwargs = dict(
@@ -90,7 +88,8 @@ def cli(
         history_file_css=config["history_file_css"],
         history_file_xpath=config["history_file_xpath"],
         history_file_embed=config["history_file_embed"],
-        color=not no_color,
+        color=not (not config["color"] or no_color),
+        vi_mode=vi_mode or config["vi_mode"],
     )
     if url:
         if cache:

@@ -13,7 +13,7 @@ import requests
 from click import BadOptionUsage, NoSuchOption, Option, OptionParser, echo
 from loguru import logger as log
 from parsel import Selector
-from prompt_toolkit import prompt
+from prompt_toolkit import HTML, prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import SimpleLexer
@@ -90,6 +90,7 @@ class Prompter:
         history_file_embed=None,
         warn_limit=None,
         color=True,
+        vi_mode=False,
     ):
         """
         :param selector:
@@ -102,6 +103,7 @@ class Prompter:
         self._flags = None
         self._commands = None
         self.color = color
+        self.vi_mode = vi_mode
         self.console = Console(soft_wrap=True, highlight=self.color, markup=True)
         self.raw_output = False
         self.pretty_output = True
@@ -142,6 +144,8 @@ class Prompter:
             Option(["--xpath"], is_flag=True, help="switch to xpath input"),
             Option(["--open"], is_flag=True, help="open current url in web browser"),
             Option(["--view"], is_flag=True, help="open current doc in web browser"),
+            Option(["--vi"], is_flag=True, help="toggle input to/from vi mode"),
+            Option(["--fetch"], help="request new url"),
         ]
         self.options_processors = [
             Option(["--first", "-1"], is_flag=True, help="take only 1st value"),
@@ -168,7 +172,7 @@ class Prompter:
             Option(
                 ["--join", "-j", "join"],
                 is_flag=True,
-                flag_value=" ",
+                flag_value="",
                 help="join results",
             ),
             Option(
@@ -197,6 +201,7 @@ class Prompter:
         history_file_embed=None,
         warn_limit=None,
         color=True,
+        vi_mode=False,
     ):
         """create prompter with response object"""
         if "br" in response.headers.get("Content-Encoding", ""):
@@ -214,6 +219,7 @@ class Prompter:
             history_file_embed=history_file_embed,
             warn_limit=warn_limit,
             color=color,
+            vi_mode=vi_mode,
         )
 
     @classmethod
@@ -227,6 +233,7 @@ class Prompter:
         history_file_embed=None,
         warn_limit=None,
         color=True,
+        vi_mode=False,
     ):
         """create prompter from html file"""
         response = Response()
@@ -243,6 +250,7 @@ class Prompter:
             history_file_embed=history_file_embed,
             warn_limit=warn_limit,
             color=color,
+            vi_mode=vi_mode,
         )
 
     def _create_completers(self, selector: Selector):
@@ -268,6 +276,21 @@ class Prompter:
     def commands(self) -> Dict[str, Callable]:
         """commands prompter support"""
         return {name.split("cmd_")[1]: getattr(self, name) for name in dir(self) if name.startswith("cmd_")}
+
+    @property
+    def bottom_toolbar(self):
+        """generate prompt toolkit bottom toolbar HTML."""
+        toolbar = "[vi]" if self.vi_mode else ""
+        if self.response is not None:
+            cached = "cached" if getattr(self.response, "from_cache", None) else "live"
+            toolbar += f" [{cached}] {self.response.status_code} {self.response.url}"
+        toolbar += f" | processors: {self.active_processors}"
+        return HTML(toolbar)
+
+    @property
+    def rprompt(self):
+        """generate prompt toolkit right prompt"""
+        return "CSS" if self.completer is self.completer_css else "XPATH"
 
     def cmd_fetch(self, text):
         """switch current session to different url by making a new request"""
@@ -334,6 +357,11 @@ class Prompter:
         self.active_processors = []
         echo(f"active processors: {self.active_processors}")
 
+    def cmd_vi(self):
+        """toggles vi mode of input"""
+        self.vi_mode = not self.vi_mode
+        echo(f"vi mode turned {'ON' if self.vi_mode else 'OFF'}")
+
     def process_data(self, data, processors=None) -> Tuple[Any, Dict]:
         """Process data through enabled flag processors."""
         if processors is None:
@@ -385,6 +413,9 @@ class Prompter:
                 enable_history_search=True,
                 completer=self.completer,
                 lexer=SimpleLexer(),
+                bottom_toolbar=self.bottom_toolbar,
+                rprompt=self.rprompt,
+                vi_mode=self.vi_mode,
             )
             text = text.replace("\\n", "\n")
             log.debug(f"got line input: {text!r}")

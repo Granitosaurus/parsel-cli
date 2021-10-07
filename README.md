@@ -37,6 +37,8 @@ Commands:
 --xpath                  switch to xpath input
 --open                   open current url in web browser
 --view                   open current doc in web browser
+--vi                     toggle input to/from vi mode
+--fetch                  request new url
 Processors:
 --first, -1              take only 1st value
 --pretty, -p             pretty format html
@@ -125,6 +127,7 @@ By default it starts in css interpreter mode but can be switched to xpath by `-x
     --xpath                  siwtch to xpath input
     --open                   open current url in web browser
     --view                   open current doc in web browser
+    --fetch                  request new url
     Processors:
     --first, -1              take only 1st value
     --len, -l                return total length

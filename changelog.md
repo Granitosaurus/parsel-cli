@@ -8,6 +8,7 @@
     -n                       take n-th element
     ```
 - rework output and add coloring
+- add prompt toolkit bottom toolbar, rprompt and vi_mode and related commands
 - autocomplete improvements
 - lots of bug fixes
 
