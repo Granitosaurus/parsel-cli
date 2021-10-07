@@ -282,9 +282,12 @@ class Prompter:
         """generate prompt toolkit bottom toolbar HTML."""
         toolbar = "[vi]" if self.vi_mode else ""
         if self.response is not None:
+            url = self.response.url
+            if len(url) > 70:
+                url = url[:67] + "..."
             cached = "cached" if getattr(self.response, "from_cache", None) else "live"
-            toolbar += f" [{cached}] {self.response.status_code} {self.response.url}"
-        toolbar += f" | processors: {self.active_processors}"
+            toolbar += f" [{cached}] {self.response.status_code} {url}"
+        toolbar += f" | {self.active_processors}"
         return HTML(toolbar)
 
     @property

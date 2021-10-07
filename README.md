@@ -12,8 +12,7 @@ Main goal of this tool is to ease document parser development (usually in the co
 ## Features:
 
 * Supports `css` and `xpath` selector expressions.
-* Interactive shell with autocomplete and history.
-* Css and xpath hints based on current webpage DOM.
+* [Prompt Toolkit] powered interactive shell with autocomplete, hints, vi mode etc.
 * Cache support for repeated usage.
 * Extensive and instant text processing via text processor flags.
 
@@ -169,6 +168,10 @@ or install from github:
 
     # input on parsel launch - usually used to enable session processors
     initial_input = [ "--collapse --strip"]
+    # whether input coloring is enabled 
+    color = True
+    # whether input is in vi mode
+    vi_mode = False
     # where ptpython history is located
     history_file_css = "/home/user/.cache/parsel/history_css"
     history_file_xpath = "/home/user/.cache/parsel/history_xpath"
@@ -187,3 +190,4 @@ or install from github:
     # User-Agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
 
  
+[Prompt Toolkit]: https://github.com/prompt-toolkit/python-prompt-toolkit
