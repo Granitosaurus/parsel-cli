@@ -6,12 +6,10 @@ import shlex
 import webbrowser
 from functools import partial
 from tempfile import NamedTemporaryFile
-from typing import Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import brotli
 import click
 import requests
-from bs4 import BeautifulSoup
 from click import BadOptionUsage, NoSuchOption, Option, OptionParser, echo
 from loguru import logger as log
 from parsel import Selector
@@ -21,11 +19,23 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import SimpleLexer
 from requests import Response
 from rich.console import Console
-from rich.syntax import Syntax
 
-from parselcli.completer import BASE_COMPLETION, CSS_COMPLETION, XPATH_COMPLETION, MiddleWordCompleter
+from parselcli.completer import CSS_COMPLETION, XPATH_COMPLETION, MiddleWordCompleter
 from parselcli.embed import embed_auto
-from parselcli.processors import AbsoluteUrl, Collapse, First, Join, Len, Nth, Strip
+from parselcli.processors import (
+    AbsoluteUrl,
+    Collapse,
+    First,
+    FormatHtml,
+    Join,
+    Len,
+    Nth,
+    Processor,
+    Slice,
+    Strip,
+    Repr,
+    Regex,
+)
 
 echo = partial(echo, err=True)
 
@@ -79,9 +89,7 @@ class Prompter:
         history_file_xpath=None,
         history_file_embed=None,
         warn_limit=None,
-        color_theme="ansi_light",
         color=True,
-        formatting=True,
     ):
         """
         :param selector:
@@ -93,10 +101,8 @@ class Prompter:
         self._option_parser = None
         self._flags = None
         self._commands = None
-        self.console = Console()
-        self.color_theme = color_theme
         self.color = color
-        self.formatting = formatting
+        self.console = Console(soft_wrap=True, highlight=self.color, markup=True)
         self.raw_output = False
         self.pretty_output = True
 
@@ -113,12 +119,6 @@ class Prompter:
         self.active_processors = []
         self.preferred_embed = preferred_embed_shell
 
-        # setup completers
-        self._create_completers(self.sel)
-        self.completer = self.completer_xpath
-        if start_in_css:
-            self.completer = self.completer_css
-
         self.processors = {
             "strip": Strip,
             "collapse": Collapse,
@@ -127,22 +127,28 @@ class Prompter:
             "first": First,
             "n": Nth,
             "len": Len,
+            "pretty": FormatHtml,
+            "repr": Repr,
+            "re": Regex,
+            "slice": Slice,
         }
         self.option_parser = OptionParser()
         self.options_commands = [
             Option(["--help"], is_flag=True, help="print help"),
-            Option(["--raw"], is_flag=True, help="show raw output"),
-            Option(["--pretty"], is_flag=True, help="show pretty output"),
             Option(["--reset"], is_flag=True, help="reset processors"),
             Option(["--embed"], is_flag=True, help="embed repl"),
             Option(["--info"], is_flag=True, help="show context info"),
             Option(["--css"], is_flag=True, help="switch to css input"),
-            Option(["--xpath"], is_flag=True, help="siwtch to xpath input"),
+            Option(["--xpath"], is_flag=True, help="switch to xpath input"),
             Option(["--open"], is_flag=True, help="open current url in web browser"),
             Option(["--view"], is_flag=True, help="open current doc in web browser"),
         ]
         self.options_processors = [
             Option(["--first", "-1"], is_flag=True, help="take only 1st value"),
+            Option(["--pretty", "-p"], is_flag=True, help="pretty format html"),
+            Option(["--slice", "-["], help="take slice"),
+            Option(["--re"], help="filter values by regex"),
+            Option(["--repr", "-r"], is_flag=True, help="represent output (e.g. show newline chars)"),
             Option(["--len", "-l"], is_flag=True, help="return total length"),
             Option(
                 ["--strip", "-s"],
@@ -174,6 +180,12 @@ class Prompter:
         for opt in self.options_commands + self.options_processors:
             opt.add_to_parser(self.option_parser, None)
 
+        # setup completers
+        self._create_completers(self.sel)
+        self.completer = self.completer_xpath
+        if start_in_css:
+            self.completer = self.completer_css
+
     @classmethod
     def from_response(
         cls,
@@ -184,13 +196,12 @@ class Prompter:
         history_file_xpath=None,
         history_file_embed=None,
         warn_limit=None,
-        color_theme="ansi_light",
         color=True,
-        formatting=True,
     ):
         """create prompter with response object"""
         if "br" in response.headers.get("Content-Encoding", ""):
-            text = brotli.decompress(response.content).decode(response.encoding)
+            # text = brotli.decompress(response.content).decode(response.encoding)
+            text = response.text
         else:
             text = response.text
         return cls(
@@ -202,9 +213,7 @@ class Prompter:
             history_file_xpath=history_file_xpath,
             history_file_embed=history_file_embed,
             warn_limit=warn_limit,
-            color_theme=color_theme,
             color=color,
-            formatting=formatting,
         )
 
     @classmethod
@@ -217,9 +226,7 @@ class Prompter:
         history_file_xpath=None,
         history_file_embed=None,
         warn_limit=None,
-        color_theme="ansi_light",
         color=True,
-        formatting=True,
     ):
         """create prompter from html file"""
         response = Response()
@@ -235,21 +242,23 @@ class Prompter:
             history_file_xpath=history_file_xpath,
             history_file_embed=history_file_embed,
             warn_limit=warn_limit,
-            color_theme=color_theme,
             color=color,
-            formatting=formatting,
         )
 
-    def _create_completers(self, selector):
+    def _create_completers(self, selector: Selector):
         """Initiated auto completers based on current selector"""
+        base = [
+            *self.option_parser._long_opt.keys(),  # pylint: disable=protected-access
+            *self.option_parser._short_opt.keys(),  # pylint: disable=protected-access
+        ]
         self.completer_xpath = MiddleWordCompleter(
-            BASE_COMPLETION + get_xpath_completion(selector),
+            base + get_xpath_completion(selector),
             ignore_case=True,
             match_end=True,
             sentence=True,
         )
         self.completer_css = MiddleWordCompleter(
-            BASE_COMPLETION + get_css_completion(selector),
+            base + get_css_completion(selector),
             ignore_case=True,
             match_end=True,
             sentence=True,
@@ -289,13 +298,11 @@ class Prompter:
 
     def cmd_info(self):
         """print info about current session"""
-        if self.response:
-            echo(f"{self.response.status_code} {self.response.url}")
-        else:
+        if self.response is None:
             echo("No response object attached")
-        echo("Enabled processors:")
-        for processor in self.active_processors:
-            echo("  " + type(processor).__name__)
+        else:
+            echo(f"{self.response.status_code} {self.response.url}")
+        echo(f"Enabled processors: {self.active_processors}")
 
     def cmd_embed(self):
         """Open current shell in embed repl"""
@@ -327,39 +334,29 @@ class Prompter:
         self.active_processors = []
         echo(f"active processors: {self.active_processors}")
 
-    def cmd_raw(self):
-        """set output to raw format"""
-        self.raw_output = True
-        self.pretty_output = False
-        echo("raw output enabled")
-
-    def cmd_pretty(self):
-        """set output to pretty format (default)"""
-        self.pretty_output = True
-        self.raw_output = False
-        echo("pretty output enabled")
-
-    def process_data(self, data, processors=None):
-        """Process data through enabled flag processors"""
+    def process_data(self, data, processors=None) -> Tuple[Any, Dict]:
+        """Process data through enabled flag processors."""
         if processors is None:
             processors = self.active_processors
         try:
+            meta = {}
             for processor in processors:
-                data = processor(data)
+                data, _meta = processor(data)
+                meta.update(_meta)
         except Exception as exc:  # pylint: disable=W0703
-            echo(exc)
-        return data
+            echo(f'processor "{processor}" failed: {exc}')
+        return data, meta
 
-    def get_xpath(self, text, processors=None):
-        """Tries to extract xpath from a selector"""
+    def get_xpath(self, text, processors: Optional[List[Processor]] = None) -> Tuple[Any, Dict]:
+        """Try to extract xpath from a selector."""
         try:
             return self.process_data(self.sel.xpath(text).extract(), processors=processors)
         except Exception as exc:  # pylint: disable=W0703
             echo(f'E:"{text}": {exc}')
             return self.process_data([], processors=processors)
 
-    def get_css(self, text, processors=None):
-        """Tries to extract css from a selector"""
+    def get_css(self, text, processors: Optional[List[Processor]] = None) -> Tuple[Any, Dict]:
+        """Try to extract css from a selector."""
         try:
             return self.process_data(self.sel.css(text).extract(), processors=processors)
         except Exception as exc:  # pylint: disable=W0703
@@ -367,10 +364,7 @@ class Prompter:
             return self.process_data([], processors=processors)
 
     def parse_input(self, text: str):
-        """
-        Parses commands and flags from a string
-        :returns remaining_text, found_commands, found_flags_to_enable, found_flags_to_disable
-        """
+        """Parse commands and flags from a string."""
         lex = shlex.shlex(text, posix=True)
         lex.whitespace = " "  # we want to keep newline chars etc
         lex.whitespace_split = True
@@ -379,9 +373,7 @@ class Prompter:
         return parsed, remainder
 
     def loop_prompt(self, start_in_embed=False):
-        """
-        main loop prompt that keeps reading input line until exit
-        """
+        """Run prompt loop that keeps reading input line and showing output until exit."""
         while True:
             if start_in_embed:
                 self.cmd_embed()
@@ -400,36 +392,9 @@ class Prompter:
                 return
             if not text:
                 continue
-            result = self.readline(text)
-            log.debug(f"processed line input to: {result!r}")
-            self.show_output(result)
-
-    def show_output(self, output: Union[str, List]):
-        """show output"""
-        if self.raw_output and output is not None:
-            self.console.print(
-                repr(output),
-            )
-            return
-        if not isinstance(output, list):
-            output = [output]
-        for element in output:
-            if not element:
-                continue
-            is_html = bool(re.search("^<.+?>", element))
-            if self.formatting and is_html:
-                log.debug("identified output as html and formatting enabled: formatting")
-                if self.formatting:
-                    soup = BeautifulSoup(element, features="lxml")
-                    element = soup.html.body.next.prettify()
-            if self.color:
-                log.debug(f"color enabled: applying color: {self.color_theme}")
-                self.console.print(
-                    Syntax(element if is_html else repr(element), "html", tab_size=2, theme=self.color_theme),
-                    soft_wrap=True,
-                )
-            else:
-                self.console.print(repr(element), soft_wrap=True, highlight=False)
+            result, meta = self.readline(text)
+            log.debug(f"processed line input to: {result!r} with meta {meta!r}")
+            self.console.print("" if result is None else result)
 
     def readline(self, text: str) -> str:  # pylint: disable=R0912
         """
@@ -443,13 +408,13 @@ class Prompter:
         """
         processors = self.active_processors
         # check flags and commands
-        if re.search(r"-\w+", text):
+        if re.search(r"-[\w\[]+", text):
             log.debug("line has -- options - extracting details")
             try:
                 opts, remainder = self.parse_input(text)
             except (BadOptionUsage, NoSuchOption) as exc:
                 echo(exc)
-                return
+                return None, {}
             # if any commands are found execute first one
             _inline_processors = []
             for name, value in opts.items():
@@ -475,21 +440,21 @@ class Prompter:
                 log.debug(f"command has remainder selectors to execute: {remainder}")
                 text = remainder.strip("'")
             # option with no text -> default processors were activated
-            elif processors:
+            elif _inline_processors:
                 log.debug(f"session processors changed: {processors}")
                 self.active_processors = processors
                 echo(f"active processors: {self.active_processors}")
-                return
+                return None, {}
             # no processors and no remainder -> single command run
             else:
-                return
+                return None, {}
 
         if self.completer is self.completer_css:
             log.info(f'extracting css "{text}" with processors: {processors}')
-            value = self.get_css(text, processors=processors)
+            value, meta = self.get_css(text, processors=processors)
         else:
             log.info(f'extracting xpath "{text}" with processors: {processors}')
-            value = self.get_xpath(text, processors=processors)
+            value, meta = self.get_xpath(text, processors=processors)
         try:
             value_len = len("".join(value))
             if self.warn_limit and value_len > self.warn_limit:
@@ -497,4 +462,4 @@ class Prompter:
                     return
         except TypeError:
             pass
-        return value
+        return value, meta

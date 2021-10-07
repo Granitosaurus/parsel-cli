@@ -36,19 +36,19 @@ def test_Prompter_readline_cmd_switch():
     p.readline("--css")
     assert p.completer is p.completer_css
     # switch and execute
-    result = p.readline("//h1/text() --xpath")
+    result, _ = p.readline("//h1/text() --xpath")
     assert p.completer is p.completer_xpath
     assert result == ["text"]
 
 def test_Prompter_readline_newline_option_arg():
     p = Prompter(Selector("<h1>text</h1><h1>text2</h1>"))
-    result = p.readline("//h1/text() --xpath --join-with \n")
+    result, _ = p.readline("//h1/text() --xpath --join-with \n")
     assert result == "text\ntext2"
 
 
 def test_Prompter_readline_cmd_help(capfd):
     p = Prompter(Selector("<h1>text</h1>"))
-    result = p.readline("--help")
+    result, _ = p.readline("--help")
     assert result is None
     # should print out commands and processors
     out = capfd.readouterr().err
@@ -58,7 +58,7 @@ def test_Prompter_readline_cmd_help(capfd):
 
 def test_Prompter_readline_cmd_info(capfd):
     p = Prompter(Selector("<h1>text</h1>"))
-    result = p.readline("--info")
+    result, _ = p.readline("--info")
     assert result is None
     # should print out commands and processors
     out = capfd.readouterr().err

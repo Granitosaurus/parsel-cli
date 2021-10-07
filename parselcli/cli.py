@@ -42,9 +42,7 @@ def setup_logging(verbosity: int = 0):
 @click.option("-x", "compile_xpath", help="compile xpath and return it")
 @click.option("-i", "initial_input", help="initial input", multiple=True)
 @click.option("--cache", help="cache requests", is_flag=True)
-@click.option("--theme", help="color theme")
 @click.option("--no-color", help="disable html output colors", is_flag=True)
-@click.option("--no-format", help="disable html output formatting", is_flag=True)
 @click.option("--warn-limit", help="", type=click.INT)
 @click.option("--config", help="config file", default=CONFIG, show_default=True)
 @click.option("--embed", is_flag=True, help="start in embedded python shell")
@@ -69,8 +67,6 @@ def cli(
     warn_limit,
     verbosity,
     no_color,
-    no_format,
-    theme,
 ):
     """Interactive shell for css and xpath selectors"""
     setup_logging(verbosity)
@@ -84,9 +80,7 @@ def cli(
     log.debug(f"using config from {config}")
     config = get_config(Path(config))
     log.debug(f"config values: {config}")
-    no_color = config["disable_color"] or no_color
-    no_format = config["disable_formatting"] or no_format
-    theme = theme or config["theme"]
+    no_color = not config["color"] or no_color
 
     # Create prompter either from url or file
     prompter_kwargs = dict(
@@ -97,8 +91,6 @@ def cli(
         history_file_xpath=config["history_file_xpath"],
         history_file_embed=config["history_file_embed"],
         color=not no_color,
-        formatting=not no_format,
-        color_theme=theme,
     )
     if url:
         if cache:
@@ -113,6 +105,7 @@ def cli(
         log.debug(f"using combined headers: {headers}")
         with CachedSession(config["requests"]["cache_file"], expire_after=cache_expire) as session:
             resp = session.get(url, headers=headers)
+            log.info(f"Got response: {resp}")
         prompter = Prompter.from_response(response=resp, **prompter_kwargs)
     else:
         echo(f"using local file: {file}")
@@ -125,11 +118,11 @@ def cli(
             prompter.readline(line)
     if compile_css:
         log.debug(f'compiling css "{compile_css}" and exiting')
-        prompter.show_output(prompter.readline(compile_css + " --css"))
+        prompter.console.print(prompter.readline(compile_css + " --css")[0])
         return
     if compile_xpath:
         log.debug(f'compiling xpath "{compile_xpath}" and exiting')
-        prompter.show_output(prompter.get_xpath(compile_xpath))
+        prompter.console.print(prompter.get_xpath(compile_xpath)[0])
         return
     log.debug("starting prompt loop")
     prompter.loop_prompt(start_in_embed=embed)

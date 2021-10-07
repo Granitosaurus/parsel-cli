@@ -12,10 +12,6 @@ XPATH_COMPLETION = [
     "last()",
 ]
 CSS_COMPLETION = ["::text", "::attr("]
-_FLAGS = ["strip", "first", "absolute", "onlyfirst", "join"]
-BASE_COMPLETION = ["css", "xpath", "-help", "-debug"]
-for flag in _FLAGS:
-    BASE_COMPLETION.extend(["+" + flag, "-" + flag])
 
 
 def ends_with_part(word, text):
