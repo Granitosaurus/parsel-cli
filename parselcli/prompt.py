@@ -135,7 +135,7 @@ class Prompter:
         self.option_parser = OptionParser()
         self.options_commands = [
             Option(["--help"], is_flag=True, help="print help"),
-            Option(["--reset"], is_flag=True, help="reset processors"),
+            Option(["--reset"], is_flag=True, help="reset session processors"),
             Option(["--embed"], is_flag=True, help="embed repl"),
             Option(["--info"], is_flag=True, help="show context info"),
             Option(["--css"], is_flag=True, help="switch to css input"),
@@ -390,10 +390,20 @@ class Prompter:
             log.debug(f"got line input: {text!r}")
             if text.lower().strip() == "exit":
                 return
+            if text.lower().strip() == "help":
+                self.cmd_help()
+                continue
             if not text:
                 continue
             result, meta = self.readline(text)
             log.debug(f"processed line input to: {result!r} with meta {meta!r}")
+            try:
+                value_len = len("".join(result))
+                if self.warn_limit and value_len > self.warn_limit:
+                    if not click.confirm(f"warning: long output ({value_len} characters), print?"):
+                        continue
+            except TypeError:
+                pass
             self.console.print("" if result is None else result)
 
     def readline(self, text: str) -> str:  # pylint: disable=R0912
@@ -455,11 +465,4 @@ class Prompter:
         else:
             log.info(f'extracting xpath "{text}" with processors: {processors}')
             value, meta = self.get_xpath(text, processors=processors)
-        try:
-            value_len = len("".join(value))
-            if self.warn_limit and value_len > self.warn_limit:
-                if not click.confirm(f"very big output {value_len}, print?"):
-                    return
-        except TypeError:
-            pass
         return value, meta

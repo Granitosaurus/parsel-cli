@@ -36,7 +36,7 @@ def setup_logging(verbosity: int = 0):
 @click.command()
 @click.argument("url", required=False)
 @click.option("-h", "headers", help='request headers, e.g. -h "user-agent=cat bot"', multiple=True)
-@click.option("-xpath", is_flag=True, help="start in xpath mode instead of css")
+@click.option("--xpath", is_flag=True, help="start in xpath mode instead of css")
 @click.option("-f", "--file", type=click.File("r"), help="input from html file instead of url")
 @click.option("-c", "compile_css", help="compile css and return it")
 @click.option("-x", "compile_xpath", help="compile xpath and return it")
@@ -86,7 +86,7 @@ def cli(
     prompter_kwargs = dict(
         start_in_css=not xpath,
         preferred_embed_shell=shell,
-        warn_limit=config if warn_limit is None else warn_limit,
+        warn_limit=config["warn_limit"] if warn_limit is None else warn_limit,
         history_file_css=config["history_file_css"],
         history_file_xpath=config["history_file_xpath"],
         history_file_embed=config["history_file_embed"],
