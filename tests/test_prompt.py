@@ -20,7 +20,7 @@ def test_Prompter_parse_input():
     assert p.parse_input("foo -1 bar") == ({"first": True}, "foo bar")
     assert p.parse_input("foo --first bar") == ({"first": True}, "foo bar")
 
-    assert p.parse_input("foo --join bar") == ({"join": " "}, "foo bar")
+    assert p.parse_input("foo --join bar") == ({"join": ""}, "foo bar")
     assert p.parse_input("foo --join-with , bar") == ({"join": ","}, "foo bar")
 
     assert p.parse_input("foo --join-with \n bar") == ({"join": "\n"}, "foo bar")
