@@ -10,12 +10,17 @@
 
 Main goal of this tool is to ease document parser development (usually in the context of web-scraping).
 
+
 ## Features:
 
-* Supports `css` and `xpath` selector expressions.
+![screenshot of parsel shell](screenshot.png)
+
+* Supports `css` and `xpath` selector expressions either.
 * [Prompt Toolkit] powered interactive shell with autocomplete, hints, vi mode etc.
+* [Click] powered unix CLI (with pipe support)
 * Cache support for repeated usage.
 * Extensive and instant text processing via text processor flags.
+* User configs `~/.config/parsel.toml`
 
 
 ## Example Usage
@@ -192,3 +197,4 @@ or install from github:
 
  
 [Prompt Toolkit]: https://github.com/prompt-toolkit/python-prompt-toolkit
+[Click]: https://github.com/pallets/click
