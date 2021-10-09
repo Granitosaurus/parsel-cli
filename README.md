@@ -156,6 +156,7 @@ Processor options can be either activated for specific prompt (inline processors
     # will take first element
 
 Or can be set for current session (session processors):
+
     > --first
     default processors: [First]
     # will process every following command with new processors
