@@ -189,6 +189,7 @@ class Prompter:
         self.completer = self.completer_xpath
         if start_in_css:
             self.completer = self.completer_css
+        self.output_history = []
 
     @classmethod
     def from_response(
@@ -332,10 +333,17 @@ class Prompter:
 
     def cmd_embed(self):
         """Open current shell in embed repl"""
+        request = self.response.request if self.response is not None else None
         namespace = {
             "sel": self.sel,
             "response": self.response,
-            "request": self.response.request if self.response else None,
+            "resp": self.response,
+            "request": request,
+            "req": request,
+            "outs": self.output_history,
+            "out": self.output_history[-1],
+            "in_css": list(self.history_file_css.load_history_strings()),
+            "in_xpath": list(self.history_file_xpath.load_history_strings()),
         }
         embed_auto(
             namespace,
@@ -439,6 +447,8 @@ class Prompter:
             except TypeError:
                 pass
             self.console.print("" if result is None else result)
+            if result:
+                self.output_history.append(result)
 
     def readline(self, text: str) -> str:  # pylint: disable=R0912
         """
