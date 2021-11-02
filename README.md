@@ -83,6 +83,8 @@ switched to xpath
 About parselcli
 ```
 
+For usage recipes, see [recipes.md](/recipes.md) documentations.
+
 
 ## Details
 
