@@ -341,7 +341,7 @@ class Prompter:
             "request": request,
             "req": request,
             "outs": self.output_history,
-            "out": self.output_history[-1],
+            "out": self.output_history[-1] if self.output_history else None,
             "in_css": list(self.history_file_css.load_history_strings()),
             "in_xpath": list(self.history_file_xpath.load_history_strings()),
         }
