@@ -2,13 +2,18 @@
 Contains processor callables for parselcli
 """
 import re
+from decimal import Decimal
 from urllib.parse import urljoin
+from typing import Tuple, Union, Dict, List
 
 from bs4 import BeautifulSoup
 
 
 class Processor:
     """Base class for parselcli processors"""
+
+    def __call__(self, values: Union[List[str], str]) -> Tuple[Union[List[str], str], Dict]:
+        pass
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}"
@@ -43,10 +48,15 @@ class Join(Processor):
 class Strip(Processor):
     """Strip trailing spaces"""
 
+    def __init__(self, chars=None) -> None:
+        self.chars = chars
+        super().__init__()
+
     def __call__(self, values):
         if isinstance(values, list):
-            return [v.strip() for v in values if v.strip()], {}
-        return values.strip(), {}
+            values = [v.strip(self.chars) for v in values]
+            return [v for v in values if v], {}
+        return values.strip(self.chars), {}
 
 
 class Collapse(Processor):
@@ -83,7 +93,7 @@ class Len(Processor):
     """Return length"""
 
     def __call__(self, values):
-        return len(values), {}
+        return str(len(values)), {}
 
 
 class Repr(Processor):
@@ -121,10 +131,28 @@ class Regex(Processor):
     def __init__(self, pattern: str, flags=0) -> None:
         self.pattern = re.compile(pattern, flags)
 
+    def check(self, value: str):
+        """
+        check whether value matches processor's pattern
+        returns either:
+        - found group if there's only 1 found group
+        - list of found groups if there are any
+        - value if it matches
+        - "" if no matches are found
+        """
+        search = self.pattern.search(value)
+        if not search:
+            return ""
+        if search.groups():
+            if len(search.groups()) == 1:
+                return search.groups()[0]
+            return list(search.groups())
+        return value
+
     def __call__(self, values):
         if isinstance(values, list):
-            return [value for value in values if self.pattern.search(value)], {}
-        return values if self.pattern.search(values) else "", {}
+            return [self.check(value) for value in values], {}
+        return self.check(values), {}
 
 
 class Slice(Processor):
@@ -139,3 +167,14 @@ class Slice(Processor):
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._value})"
+
+
+class Sum(Processor):
+    """sum all values"""
+
+    def __call__(self, values):
+        if not isinstance(values, list):
+            return values, {}
+        if all(v.isdigit() for v in values):
+            return str(sum(int(v) for v in values)), {}
+        return str(sum(Decimal(v) for v in values)), {}
