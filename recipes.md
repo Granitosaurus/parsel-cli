@@ -39,3 +39,28 @@ $ parsel https://news.ycombinator.com/
 3619
 ```
 
+## Using --re capture groups 
+
+One of the most powerful processors is the `--re` processor that can either filter out or capture elements by pattern.
+
+For example we want to calculate total points on hacker news front-page:
+
+```
+$ parsel https://news.ycombinator.com/
+# First we figure out css selector for points:
+> tr .score::text
+[
+    '336 points',
+    '85 points',
+    '34 points',
+    '152 points',
+    '569 points',
+    '38 points',
+    ...
+]
+# we can get rid of points and use --sum processor to get a total
+> tr .score::text --re "(\d+)" --sum 
+3619
+```
+
+
