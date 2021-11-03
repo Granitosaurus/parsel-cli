@@ -35,6 +35,7 @@ from parselcli.processors import (
     Strip,
     Repr,
     Regex,
+    Sum,
 )
 
 echo = partial(echo, err=True)
@@ -133,6 +134,7 @@ class Prompter:
             "repr": Repr,
             "re": Regex,
             "slice": Slice,
+            "sum": Sum,
         }
         self.option_parser = OptionParser()
         self.options_commands = [
@@ -151,9 +153,10 @@ class Prompter:
             Option(["--first", "-1"], is_flag=True, help="take only 1st value"),
             Option(["--pretty", "-p"], is_flag=True, help="pretty format html"),
             Option(["--slice", "-["], help="take slice"),
-            Option(["--re"], help="filter values by regex"),
+            Option(["--re"], help="filter values by regex or if capture groups are present return them"),
             Option(["--repr", "-r"], is_flag=True, help="represent output (e.g. show newline chars)"),
             Option(["--len", "-l"], is_flag=True, help="return total length"),
+            Option(["--sum"], is_flag=True, help="sum all results"),
             Option(
                 ["--strip", "-s"],
                 is_flag=True,
@@ -384,6 +387,7 @@ class Prompter:
                 meta.update(_meta)
         except Exception as exc:  # pylint: disable=W0703
             echo(f'processor "{processor}" failed: {exc}')
+            log.exception("processor failed")
         return data, meta
 
     def get_xpath(self, text, processors: Optional[List[Processor]] = None) -> Tuple[Any, Dict]:
