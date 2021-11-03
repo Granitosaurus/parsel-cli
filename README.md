@@ -48,7 +48,8 @@ Processors:
 --first, -1              take only 1st value
 --pretty, -p             pretty format html
 --slice, -[              take slice
---re                     filter values by regex
+--re                     filter values by regex or if capture groups are present return them
+--sum                    sum all values if possible
 --repr, -r               represent output (e.g. show newline chars)
 --len, -l                return total length
 --strip, -s              strip away trailing chars
