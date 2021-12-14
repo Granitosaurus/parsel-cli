@@ -408,7 +408,7 @@ class Prompter:
 
     def parse_input(self, text: str):
         """Parse commands and flags from a string."""
-        lex = shlex.shlex(text, posix=True)
+        lex = shlex.shlex(text, posix=False)
         lex.whitespace = " "  # we want to keep newline chars etc
         lex.whitespace_split = True
         parsed, remainder, _ = self.option_parser.parse_args(list(lex))
@@ -494,7 +494,7 @@ class Prompter:
                 log.debug(f"using inline processors: {_inline_processors}")
                 processors = _inline_processors
             # options with remaining text -> css or xpath is up for execution
-            if remainder:
+            if opts and remainder:
                 log.debug(f"command has remainder selectors to execute: {remainder}")
                 text = remainder.strip("'")
             # option with no text -> default processors were activated
@@ -504,8 +504,11 @@ class Prompter:
                 echo(f"active processors: {self.active_processors}")
                 return None, {}
             # no processors and no remainder -> single command run
-            else:
+            elif not remainder:
                 return None, {}
+            # otherwise have remainder but no processors -> false positive, the whole string was just a selector
+            else:
+                pass
 
         if self.completer is self.completer_css:
             log.info(f'extracting css "{text}" with processors: {processors}')
