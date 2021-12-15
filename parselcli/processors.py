@@ -100,7 +100,7 @@ class AbsoluteUrl(Processor):
             return values
         if isinstance(values, list):
             return [urljoin(response.url, v) for v in values], {}
-        return urljoin(self.base, values), {}
+        return urljoin(response.url, values), {}
 
 
 class Len(Processor):

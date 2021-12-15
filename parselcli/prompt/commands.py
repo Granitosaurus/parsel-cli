@@ -53,11 +53,11 @@ class PromptCommands:
 
     def cmd_info(self):
         """print info about current session"""
-        if self.prompt.response is None:
+        if self.renderer.response is None:
             echo("No response object attached")
         else:
-            echo(f"{self.prompt.response.status_code} {self.prompt.response.url}")
-        echo(f"Enabled processors: {self.active_processors}")
+            echo(f"{self.renderer.response.status_code} {self.renderer.response.url}")
+        echo(f"Enabled processors: {self.prompt.active_processors}")
 
     def cmd_embed(self):
         """Open current shell in embed repl"""

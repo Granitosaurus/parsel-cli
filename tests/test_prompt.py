@@ -1,14 +1,23 @@
 from parselcli.prompt.runner import Prompter
+from parselcli.render.memory import MemoryRenderer
 from parsel import Selector
 
 
+def _renderer(content: str, url="http://example.com"):
+    r = MemoryRenderer()
+    r.open()
+    r.goto("http://example.com", content=content)
+    return r
+
+
 def test_Prompter():
-    p = Prompter(Selector("<h1>text</h1>"))
-    assert p
+    p = Prompter(_renderer("<h1>foobar</h1>"))
+    assert p.select("h1::text")
+    p.renderer.close()
 
 
 def test_Prompter_parse_input():
-    p = Prompter(Selector("<h1>text</h1>"))
+    p = Prompter(_renderer("<h1>text</h1>"))
     result = p.parse_input("foo bar --help")
     assert result == ({"help": True}, "foo bar")
 
@@ -27,7 +36,7 @@ def test_Prompter_parse_input():
 
 
 def test_Prompter_readline_cmd_switch():
-    p = Prompter(Selector("<h1>text</h1>"))
+    p = Prompter(_renderer("<h1>text</h1>"))
     # default is css selector
     assert p.completer is p._completer_css
     # --xpath/--css command should switch modes
@@ -40,14 +49,15 @@ def test_Prompter_readline_cmd_switch():
     assert p.completer is p._completer_xpath
     assert result == ["text"]
 
+
 def test_Prompter_readline_newline_option_arg():
-    p = Prompter(Selector("<h1>text</h1><h1>text2</h1>"))
+    p = Prompter(_renderer("<h1>text</h1><h1>text2</h1>"))
     result, _ = p.readline("//h1/text() --xpath --join-with \n")
     assert result == "text\ntext2"
 
 
 def test_Prompter_readline_cmd_help(capfd):
-    p = Prompter(Selector("<h1>text</h1>"))
+    p = Prompter(_renderer("<h1>text</h1>"))
     result, _ = p.readline("--help")
     assert result is None
     # should print out commands and processors
@@ -57,7 +67,7 @@ def test_Prompter_readline_cmd_help(capfd):
 
 
 def test_Prompter_readline_cmd_info(capfd):
-    p = Prompter(Selector("<h1>text</h1>"))
+    p = Prompter(_renderer("<h1>text</h1>"))
     result, _ = p.readline("--info")
     assert result is None
     # should print out commands and processors

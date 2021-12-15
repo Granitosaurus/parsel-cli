@@ -1,5 +1,6 @@
 import decimal
 import pytest
+from requests import Response
 from parselcli.processors import (
     AbsoluteUrl,
     First,
@@ -60,9 +61,12 @@ def test_First():
 
 def test_AbsoluteUrl():
     base = "http://httpbin.org/"
-    proc = AbsoluteUrl(base=base)
-    assert proc("foo/bar") == (f"{base}foo/bar", {})
-    assert proc(["foo/bar", "gaz/har"]) == ([f"{base}foo/bar", f"{base}gaz/har"], {})
+    resp = Response()
+    resp.url = "http://httpbin.org/"
+    resp.status_code = 200
+    proc = AbsoluteUrl()
+    assert proc("foo/bar", response=resp) == (f"{base}foo/bar", {})
+    assert proc(["foo/bar", "gaz/har"], response=resp) == ([f"{base}foo/bar", f"{base}gaz/har"], {})
 
 
 def test_Len():
