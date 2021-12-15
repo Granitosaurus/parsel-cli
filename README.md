@@ -17,6 +17,7 @@ Main goal of this tool is to ease document parser development (usually in the co
 
 * Supports `css` and `xpath` selector expressions either.
 * [Prompt Toolkit] powered interactive shell with autocomplete, hints, vi mode etc.
+* [Playwright] powered browser based rendering
 * [Click] powered unix CLI (with pipe support)
 * Cache support for repeated usage.
 * Extensive and instant text processing via text processor flags.
@@ -202,3 +203,4 @@ or install from github:
  
 [Prompt Toolkit]: https://github.com/prompt-toolkit/python-prompt-toolkit
 [Click]: https://github.com/pallets/click
+[Playwright]: https://github.com/microsoft/playwright-python
