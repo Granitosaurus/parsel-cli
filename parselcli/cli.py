@@ -11,10 +11,14 @@ import click
 from click import echo
 from loguru import logger as log
 from requests_cache import CachedSession
+from requests import Response
+from playwright.sync_api import sync_playwright
 
 from parselcli.config import CONFIG, get_config
 from parselcli.embed import PYTHON_SHELLS
 from parselcli.prompt import Prompter
+from parselcli.render.browser import PlaywrightRenderer
+from parselcli.render.http import HttpRenderer, CachedHttpRenderer
 
 CACHE_EXPIRY = 60 * 60  # 1 hour
 
@@ -37,6 +41,21 @@ def setup_logging(verbosity: int = 0):
 @click.argument("url", required=False)
 @click.option("-h", "headers", help='request headers, e.g. -h "user-agent=cat bot"', multiple=True)
 @click.option("--xpath", is_flag=True, help="start in xpath mode instead of css")
+@click.option("--browser", is_flag=True, help="use browser emulator")
+@click.option(
+    "--browser-wait",
+    type=click.Choice(["load", "domcontentloaded", "networkidle", "none"]),
+    help="wait for browser page to reach some state",
+    default="domcontentloaded",
+)
+@click.option(
+    "--browser-wait-css",
+    help="wait for browser page to render until css selector appears",
+)
+@click.option(
+    "--browser-wait-xpath",
+    help="wait for browser page to render until xpath selector appears",
+)
 @click.option("-f", "--file", type=click.File("r"), help="input from html file instead of url")
 @click.option("-c", "compile_css", help="compile css and return it")
 @click.option("-x", "compile_xpath", help="compile xpath and return it")
@@ -69,6 +88,10 @@ def cli(
     verbosity,
     no_color,
     vi_mode,
+    browser,
+    browser_wait,
+    browser_wait_css,
+    browser_wait_xpath,
 ):
     """Interactive shell for css and xpath selectors"""
     setup_logging(verbosity)
@@ -83,8 +106,6 @@ def cli(
     # Create prompter either from url or file
     prompter_kwargs = dict(
         start_in_css=not xpath,
-        preferred_embed_shell=shell,
-        warn_limit=config["warn_limit"] if warn_limit is None else warn_limit,
         history_file_css=config["history_file_css"],
         history_file_xpath=config["history_file_xpath"],
         history_file_embed=config["history_file_embed"],
@@ -102,12 +123,24 @@ def cli(
         log.debug(f"inferred headers from cli: {headers}")
         headers = {**req_config["headers"], **headers}
         log.debug(f"using combined headers: {headers}")
-        with CachedSession(config["requests"]["cache_file"], expire_after=cache_expire) as session:
-            resp = session.get(url, headers=headers)
-            log.info(f"Got response: {resp}")
-        prompter = Prompter.from_response(response=resp, **prompter_kwargs)
+        if browser:
+            renderer = PlaywrightRenderer()
+            renderer.open()
+            # TODO also need to close somewhere on keyboard exit or something
+            renderer.goto(url)
+            if browser_wait.lower() != "none":
+                renderer.page.wait_for_load_state(browser_wait)
+        else:
+            renderer = CachedHttpRenderer(
+                cache_file=config["requests"]["cache_file"],
+                cache_expire=cache_expire,
+            )
+            renderer.open()
+            renderer.goto(url)
+        prompter = Prompter(renderer=renderer, **prompter_kwargs)
     else:
         echo(f"using local file: {file}")
+        # TODO reimplement with renderer
         prompter = Prompter.from_file(file, **prompter_kwargs)
 
     if not initial_input:
@@ -121,10 +154,14 @@ def cli(
         return
     if compile_xpath:
         log.debug(f'compiling xpath "{compile_xpath}" and exiting')
-        prompter.console.print(prompter.get_xpath(compile_xpath)[0])
+        prompter.console.print(prompter._get_xpath(compile_xpath)[0])
         return
     log.debug("starting prompt loop")
-    prompter.loop_prompt(start_in_embed=embed)
+    try:
+        prompter.loop_prompt(start_in_embed=embed)
+    except Exception as e:
+        prompter.renderer.close()
+        raise e
 
 
 if __name__ == "__main__":

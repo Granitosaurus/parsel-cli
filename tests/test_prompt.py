@@ -1,4 +1,4 @@
-from parselcli.prompt import Prompter
+from parselcli.prompt.runner import Prompter
 from parsel import Selector
 
 
@@ -29,15 +29,15 @@ def test_Prompter_parse_input():
 def test_Prompter_readline_cmd_switch():
     p = Prompter(Selector("<h1>text</h1>"))
     # default is css selector
-    assert p.completer is p.completer_css
+    assert p.completer is p._completer_css
     # --xpath/--css command should switch modes
     p.readline("--xpath")
-    assert p.completer is p.completer_xpath
+    assert p.completer is p._completer_xpath
     p.readline("--css")
-    assert p.completer is p.completer_css
+    assert p.completer is p._completer_css
     # switch and execute
     result, _ = p.readline("//h1/text() --xpath")
-    assert p.completer is p.completer_xpath
+    assert p.completer is p._completer_xpath
     assert result == ["text"]
 
 def test_Prompter_readline_newline_option_arg():
