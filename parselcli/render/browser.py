@@ -3,6 +3,7 @@ from typing import Optional, Dict
 from playwright.sync_api import sync_playwright
 from playwright.sync_api._generated import Browser, Page, Playwright
 from requests import Response
+from loguru import logger as log
 
 
 class PlaywrightRenderer(Renderer):
@@ -11,7 +12,7 @@ class PlaywrightRenderer(Renderer):
         self.pw: Optional[Playwright] = None
         self.browser: Optional[Browser] = None
         self.page: Optional[Page] = None
-        self.browser_kwargs = kwargs
+        self.browser_kwargs = kwargs.get("browser_kwargs", {})
     
     @property
     def content(self):
@@ -30,7 +31,8 @@ class PlaywrightRenderer(Renderer):
     def open(self):
         self._pw_ctx = sync_playwright()
         self.pw = self._pw_ctx.start()
-        self.browser = self.pw.chromium.launch(headless=False, **self.browser_kwargs)
+        log.debug(f"launching chromium browser with kwargs: {self.browser_kwargs}")
+        self.browser = self.pw.chromium.launch(**self.browser_kwargs)
         self.page = self.browser.new_page()
 
     def close(self):

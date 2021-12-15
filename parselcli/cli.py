@@ -38,10 +38,11 @@ def setup_logging(verbosity: int = 0):
 
 
 @click.command()
-@click.argument("url", required=False)
+@click.argument("url")
 @click.option("-h", "headers", help='request headers, e.g. -h "user-agent=cat bot"', multiple=True)
 @click.option("--xpath", is_flag=True, help="start in xpath mode instead of css")
 @click.option("--browser", is_flag=True, help="use browser emulator")
+@click.option("--browser-headless", is_flag=True, help="use headless browser emulator")
 @click.option(
     "--browser-wait",
     type=click.Choice(["load", "domcontentloaded", "networkidle", "none"]),
@@ -56,14 +57,12 @@ def setup_logging(verbosity: int = 0):
     "--browser-wait-xpath",
     help="wait for browser page to render until xpath selector appears",
 )
-@click.option("-f", "--file", type=click.File("r"), help="input from html file instead of url")
 @click.option("-c", "compile_css", help="compile css and return it")
 @click.option("-x", "compile_xpath", help="compile xpath and return it")
 @click.option("-i", "initial_input", help="initial input", multiple=True)
 @click.option("--cache", help="cache requests", is_flag=True)
 @click.option("--no-color", help="disable html output colors", is_flag=True)
 @click.option("--vi-mode", help="enable vi-mode for input", is_flag=True)
-@click.option("--warn-limit", help="", type=click.INT)
 @click.option("--config", help="config file", default=CONFIG, show_default=True)
 @click.option("--embed", is_flag=True, help="start in embedded python shell")
 @click.option("-v", "verbosity", help="verbosity level", count=True)
@@ -74,7 +73,6 @@ def setup_logging(verbosity: int = 0):
 )
 def cli(
     url,
-    file,
     xpath,
     initial_input,
     embed,
@@ -84,26 +82,47 @@ def cli(
     cache,
     config,
     headers,
-    warn_limit,
     verbosity,
     no_color,
     vi_mode,
     browser,
+    browser_headless,
     browser_wait,
     browser_wait_css,
     browser_wait_xpath,
 ):
     """Interactive shell for css and xpath selectors"""
     setup_logging(verbosity)
-    headers = dict([h.split("=", 1) for h in headers])
-    if not file and not url:
-        echo("Either url or file argument/option needs to be provided")
-        return
+    echo(f"using cached version for: {url}" if cache else f"requesting: {url}")
     log.debug(f"using config from {config}")
+    headers = dict([h.split("=", 1) for h in headers])
     config = get_config(Path(config))
     log.debug(f"config values: {config}")
 
     # Create prompter either from url or file
+    req_config = {k: v for k, v in config["requests"].items() if k in ["headers"]}
+    log.debug(f"inferred headers from config: {req_config['headers']}")
+    log.debug(f"inferred headers from cli: {headers}")
+    headers = {**req_config["headers"], **headers}
+    log.debug(f"using headers: {headers}")
+
+    # Establish renderer
+    if browser or browser_headless:
+        renderer_cls = PlaywrightRenderer
+    elif cache:
+        renderer_cls = CachedHttpRenderer
+    else:
+        renderer_cls = HttpRenderer
+    renderer = renderer_cls(
+        headers=headers,
+        cache_file=config["requests"]["cache_file"],
+        cache_expire=config["requests"]["cache_expire"] if cache else -1,
+        browser_kwargs={"headless": bool(browser_headless)}
+    )
+    renderer.open()
+    renderer.goto(url)
+    # TODO also need to close somewhere on keyboard exit or something
+
     prompter_kwargs = dict(
         start_in_css=not xpath,
         history_file_css=config["history_file_css"],
@@ -112,36 +131,7 @@ def cli(
         color=not (not config["color"] or no_color),
         vi_mode=vi_mode or config["vi_mode"],
     )
-    if url:
-        if cache:
-            echo(f"using cached version for: {url}")
-        else:
-            echo(f"requesting: {url}")
-        cache_expire = config["requests"]["cache_expire"] if cache else 0
-        req_config = {k: v for k, v in config["requests"].items() if k in ["headers"]}
-        log.debug(f"inferred headers from config: {req_config['headers']}")
-        log.debug(f"inferred headers from cli: {headers}")
-        headers = {**req_config["headers"], **headers}
-        log.debug(f"using combined headers: {headers}")
-        if browser:
-            renderer = PlaywrightRenderer()
-            renderer.open()
-            # TODO also need to close somewhere on keyboard exit or something
-            renderer.goto(url)
-            if browser_wait.lower() != "none":
-                renderer.page.wait_for_load_state(browser_wait)
-        else:
-            renderer = CachedHttpRenderer(
-                cache_file=config["requests"]["cache_file"],
-                cache_expire=cache_expire,
-            )
-            renderer.open()
-            renderer.goto(url)
-        prompter = Prompter(renderer=renderer, **prompter_kwargs)
-    else:
-        echo(f"using local file: {file}")
-        # TODO reimplement with renderer
-        prompter = Prompter.from_file(file, **prompter_kwargs)
+    prompter = Prompter(renderer=renderer, **prompter_kwargs)
 
     if not initial_input:
         initial_input = config.get("initial_input", [])

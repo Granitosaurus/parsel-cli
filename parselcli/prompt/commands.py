@@ -38,8 +38,8 @@ class PromptCommands:
 
     def cmd_view(self):
         """open current response data in browser"""
-        with NamedTemporaryFile("w", encoding=self.prompt.response.encoding, delete=False, suffix=".html") as file:
-            file.write(self.prompt.response.text)
+        with NamedTemporaryFile("w", encoding=self.renderer.response.encoding, delete=False, suffix=".html") as file:
+            file.write(self.renderer.content)
         webbrowser.open_new_tab(f"file://{file.name}")
 
     def cmd_help(self):

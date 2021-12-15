@@ -73,3 +73,11 @@ def test_Prompter_readline_cmd_info(capfd):
     # should print out commands and processors
     out = capfd.readouterr().err
     assert "Enabled processors:" in out
+
+
+def test_Prompter_readline_with_dashes():
+    p = Prompter(_renderer('<h1 class="class-with--dashes">text</h1>'))
+    result, _ = p.readline("h1.class-with--dashes::text")
+    assert result == ["text"]
+    result, _ = p.readline("h1.class-with--dashes::text --first")
+    assert result == "text"
