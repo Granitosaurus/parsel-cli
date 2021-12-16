@@ -1,4 +1,5 @@
 """ Contains main flow tool for parselcli and related helper functions """
+from json import tool
 import re
 import shlex
 from functools import partial
@@ -116,6 +117,7 @@ class Prompter:
         start_in_css=True,
         color=True,
         vi_mode=False,
+        preferred_embed=None,
     ):
         """
         :param renderer: TODO
@@ -130,6 +132,7 @@ class Prompter:
 
         self.use_color = color
         self.use_vi_mode = vi_mode
+        self.preferred_embed_shell = preferred_embed
 
         self.console = Console(soft_wrap=True, highlight=self.use_color, markup=True)
         self._history_file_css = FileHistory(history_file_css)
@@ -188,7 +191,8 @@ class Prompter:
             cached = "cached" if getattr(self.renderer.response, "from_cache", None) else "live"
             toolbar += f" [{cached}] {self.renderer.response.status_code} {url}"
         toolbar += f" | {self.active_processors}"
-        return HTML(toolbar)
+        log.debug(f"generating toolbar from {toolbar}")
+        return toolbar
 
     @property
     def rprompt(self):
@@ -260,7 +264,7 @@ class Prompter:
         )
         while True:
             if start_in_embed:
-                self.cmd_embed()
+                self.cmd.cmd_embed()
                 start_in_embed = False
 
             text = session.prompt(
@@ -275,7 +279,7 @@ class Prompter:
             if text.lower().strip() == "exit":
                 return
             if text.lower().strip() == "help":
-                self.cmd_help()
+                self.cmd.cmd_help()
                 continue
             if not text:
                 continue
