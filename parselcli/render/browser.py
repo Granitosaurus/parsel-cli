@@ -4,6 +4,7 @@ from playwright.sync_api import sync_playwright
 from playwright.sync_api._generated import Browser, Page, Playwright
 from requests import Response
 from loguru import logger as log
+from parsel import Selector
 
 
 class PlaywrightRenderer(Renderer):
@@ -13,20 +14,21 @@ class PlaywrightRenderer(Renderer):
         self.browser: Optional[Browser] = None
         self.page: Optional[Page] = None
         self.browser_kwargs = kwargs.get("browser_kwargs", {})
-    
+
     @property
     def content(self):
         return self.page.content()
-    
+
     @property
     def response(self) -> Response:
-        if not self._response:
-            resp = Response()
-            resp.url = self.page.url
-            resp.status_code = 200
-            resp._content = self.content.encode()
-            self._response = resp
-        return self._response
+        resp = Response()
+        resp.url = self.page.url
+        resp.status_code = 200
+        resp._content = self.content.encode()
+        # TODO this can be more sophisticated
+        return resp
+        # self._response = resp
+        # return response
 
     def open(self):
         self._pw_ctx = sync_playwright()
@@ -41,5 +43,5 @@ class PlaywrightRenderer(Renderer):
     def goto(self, url, wait_for_load="domcontentloaded") -> Response:
         self.page.goto(url)
         self.page.wait_for_load_state(wait_for_load)
-        self._response = None
-        self._sel = None
+        # self._response = None
+        # self._sel = None

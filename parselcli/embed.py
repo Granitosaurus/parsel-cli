@@ -8,8 +8,16 @@ from collections import OrderedDict
 def embed_ipython_shell(namespace=None, history_filename=None):
     """Start an IPython Shell"""
     from IPython import embed
+    from IPython.terminal.ipapp import load_default_config
+    import nest_asyncio
 
-    embed(user_ns=namespace)
+    nest_asyncio.apply()
+
+
+    c = load_default_config()
+    c.HistoryAccessor.hist_file = history_filename
+    c.InteractiveShellEmbed = c.TerminalInteractiveShell
+    embed(user_ns=namespace, using="asyncio", config=c)
 
 
 def embed_bpython_shell(namespace=None, history_filename=None):
@@ -44,8 +52,8 @@ def embed_standard_shell(namespace=None, banner="", history_filename=None):
 
 PYTHON_SHELLS = OrderedDict(
     [
-        ("ptpython", embed_ptpython_shell),
         ("ipython", embed_ipython_shell),
+        ("ptpython", embed_ptpython_shell),
         ("bpython", embed_bpython_shell),
         ("python", embed_standard_shell),
     ]

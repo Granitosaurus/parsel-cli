@@ -39,6 +39,15 @@ $ parsel https://news.ycombinator.com/
 3619
 ```
 
+## Using --browser/--browser-headless
+
+Parsel-cli allows using of browser client as a rendering backend.   
+With these commands, parsel-cli instead of sending classic http requests, will fire up a real browser and go to the provided url and render it.  
+
+Generally, this feature would be used for websites that cannot work without javascript.
+TODO
+
+
 ## Using --re capture groups 
 
 One of the most powerful processors is the `--re` processor that can either filter out or capture elements by pattern.

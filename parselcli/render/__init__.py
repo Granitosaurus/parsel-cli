@@ -23,8 +23,9 @@ class Renderer:
 
     @property
     def selector(self) -> Selector:
-        log.debug('creating selector based on current content')
         return Selector(text=self.content)
+    
+    sel = selector
 
     def goto(self, url, **kwargs) -> Response:
         return

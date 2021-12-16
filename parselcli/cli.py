@@ -10,9 +10,6 @@ from pathlib import Path
 import click
 from click import echo
 from loguru import logger as log
-from requests_cache import CachedSession
-from requests import Response
-from playwright.sync_api import sync_playwright
 
 from parselcli.config import CONFIG, get_config
 from parselcli.embed import PYTHON_SHELLS
@@ -121,7 +118,16 @@ def cli(
     )
     renderer.open()
     renderer.goto(url)
-    # TODO also need to close somewhere on keyboard exit or something
+    if browser:
+        if browser_wait:
+            log.debug(f"faiting for load state: {browser_wait}")
+            renderer.page.wait_for_load_state(browser_wait)
+        if browser_wait_css:
+            log.debug(f"faiting for css selector: {browser_wait_xpath}")
+            renderer.page.wait_for_selector(browser_wait_css)
+        if browser_wait_xpath:
+            log.debug(f"faiting for xpath selector: {browser_wait_xpath}")
+            renderer.page.wait_for_selector(browser_wait_xpath)
 
     prompter_kwargs = dict(
         start_in_css=not xpath,
@@ -130,6 +136,7 @@ def cli(
         history_file_embed=config["history_file_embed"],
         color=not (not config["color"] or no_color),
         vi_mode=vi_mode or config["vi_mode"],
+        preferred_embed=shell,
     )
     prompter = Prompter(renderer=renderer, **prompter_kwargs)
 

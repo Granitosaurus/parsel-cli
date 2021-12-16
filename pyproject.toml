@@ -36,6 +36,7 @@ rich = "^10.11.0"
 beautifulsoup4 = "^4.10.0"
 playwright = { version="^1.17.2", optional=true }
 pyperclip = "^1.8.2"
+nest-asyncio = "^1.5.4"
 
 [tool.poetry.extras]
 browser = ["playwright"]
