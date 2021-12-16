@@ -3,6 +3,7 @@ UNRELEASED [1.2.0]
     This feature requires optional dependency [playwright](https://github.com/microsoft/playwright-python), can be installed via `pip install parselcli[browser]`.
     When `--browser` flag is used, a temporary playwright controlled headless browser will be launched and attached to parsel session.
 - add support for browser load instructions via `--browser-
+- add `--clipin` and `--clipout` to copy last input/output to clipboard
 
 [1.1.1]
 - fix some selectors containing dash characters (`-`) being interpreted incorrectly

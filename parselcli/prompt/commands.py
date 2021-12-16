@@ -1,10 +1,11 @@
 import webbrowser
 from functools import partial
 from tempfile import NamedTemporaryFile
-from typing import TYPE_CHECKING, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Callable, Dict
 
 from click import echo
 from loguru import logger as log
+import pyperclip
 from parselcli.embed import embed_auto
 from parselcli.render import Renderer
 
@@ -15,10 +16,9 @@ echo = partial(echo, err=True)
 
 
 class PromptCommands:
-    def __init__(self, prompt: "Prompter", preferred_embed: Optional[str] = None) -> None:
+    def __init__(self, prompt: "Prompter") -> None:
         self.prompt = prompt
         self.renderer: Renderer = self.prompt.renderer
-        self.preferred_embed_shell = preferred_embed
 
     @property
     def commands(self) -> Dict[str, Callable]:
@@ -63,19 +63,25 @@ class PromptCommands:
         """Open current shell in embed repl"""
         request = self.renderer.response.request if self.renderer.response is not None else None
         namespace = {
-            "sel": self.renderer.selector,
-            "response": self.renderer.response,
-            "resp": self.renderer.response,
+            "renderer": self.renderer,
+            "r": self.renderer,
+
             "request": request,
             "req": request,
+
+            "page": getattr(self.renderer, "page", None),
+            "p": getattr(self.renderer, "page", None),
+
             "outs": self.prompt.output_history,
             "out": self.prompt.output_history[-1] if self.prompt.output_history else None,
+
             "in_css": list(self.prompt._history_file_css.load_history_strings()),
             "in_xpath": list(self.prompt._history_file_xpath.load_history_strings()),
         }
+        log.debug(f"embedding {self.prompt.preferred_embed_shell} shell")
         embed_auto(
             namespace,
-            preferred=self.preferred_embed_shell,
+            preferred=self.prompt.preferred_embed_shell,
             history_filename=self.prompt._history_file_embed,
         )
 
@@ -98,3 +104,15 @@ class PromptCommands:
         """toggles vi mode of input"""
         self.prompt.use_vi_mode = not self.prompt.use_vi_mode
         echo(f"vi mode turned {'ON' if self.prompt.use_vi_mode else 'OFF'}")
+    
+    def cmd_clipin(self):
+        value = self.prompt.prompt_history.load_history_strings()
+        next(value)  # need to skip first history element as it's "--clipin" command itself
+        value = next(value)
+        pyperclip.copy(repr(value))
+        echo(f"copied \"{value if len(value)<100 else value[:100] + '<...>'}\" to clipboard")
+
+    def cmd_clipout(self):
+        value = self.prompt.output_history[0]
+        pyperclip.copy(repr(value))
+        echo(f"copied {value if len(value)<100 else value[:100] + '<...>'} to clipboard")

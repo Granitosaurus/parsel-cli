@@ -69,6 +69,8 @@ class Prompter:
         Option(["--view"], is_flag=True, help="open current doc in web browser"),
         Option(["--vi"], is_flag=True, help="toggle input to/from vi mode"),
         Option(["--fetch"], help="request new url"),
+        Option(["--clipin"], is_flag=True, help="copy last input to clipboard"),
+        Option(["--clipout"], is_flag=True, help="copy last output to clipboard"),
     ]
     options_processors = [
         Option(["--first", "-1"], is_flag=True, help="take only 1st value"),
@@ -285,13 +287,6 @@ class Prompter:
                 continue
             result, meta = self.readline(text)
             log.debug(f"processed line input to: {result!r} with meta {meta!r}")
-            try:
-                value_len = len("".join(result))
-                # if self.warn_limit and value_len > self.warn_limit:
-                #     if not click.confirm(f"warning: long output ({value_len} characters), print?"):
-                #         continue
-            except TypeError:
-                pass
             self.console.print("" if result is None else result)
             if result:
                 self.output_history.append(result)
