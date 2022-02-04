@@ -4,6 +4,7 @@ import re
 import shlex
 from functools import partial
 from typing import Any, List, Optional, Tuple, Dict
+from urllib import response
 
 import click
 from click import BadOptionUsage, NoSuchOption, Option, OptionParser, echo
@@ -164,7 +165,7 @@ class Prompter:
 
     def create_completers(self, selector: Selector):
         """Initiated auto completers based on current selector"""
-        log.debug('creating completers based on current selector')
+        log.debug("creating completers based on current selector")
         base = [
             *self.option_parser._long_opt.keys(),  # pylint: disable=protected-access
             *self.option_parser._short_opt.keys(),  # pylint: disable=protected-access
@@ -215,7 +216,7 @@ class Prompter:
         try:
             meta = {}
             for processor in processors:
-                data, _meta = processor(data)
+                data, _meta = processor(data, response=self.renderer.response)
                 meta.update(_meta)
         except Exception as exc:  # pylint: disable=W0703
             echo(f'processor "{processor}" failed: {exc}')
@@ -239,6 +240,7 @@ class Prompter:
             return self.process_data([], processors=processors)
 
     def select(self, selector, processors: Optional[List[Processor]] = None) -> Tuple[Any, Dict]:
+        """try to extract css or xpath (based on current mode settings: self.mode)"""
         log.info(f'extracting {self.mode} "{selector}" with processors: {processors}')
         if self.mode == "css":
             return self._get_css(selector, processors)
@@ -263,12 +265,16 @@ class Prompter:
             enable_history_search=True,
             lexer=SimpleLexer(),
             vi_mode=self.use_vi_mode,
+            bottom_toolbar=self.bottom_toolbar,
+            rprompt=self.rprompt,
+            completer=self.completer,
         )
         while True:
             if start_in_embed:
                 self.cmd.cmd_embed()
                 start_in_embed = False
-
+            # XXX: is this the only way to change history aside from initiating session in every loop?
+            session.default_buffer.history = self.prompt_history
             text = session.prompt(
                 "> ",
                 in_thread=True,

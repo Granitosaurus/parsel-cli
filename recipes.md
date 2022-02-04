@@ -39,13 +39,16 @@ $ parsel https://news.ycombinator.com/
 3619
 ```
 
+## Use --fetch to change urls
+
+The --fetch command can be used to quickly switch between urls:
+
 ## Using --browser/--browser-headless
 
 Parsel-cli allows using of browser client as a rendering backend.   
 With these commands, parsel-cli instead of sending classic http requests, will fire up a real browser and go to the provided url and render it.  
 
-Generally, this feature would be used for websites that cannot work without javascript.
-TODO
+Generally, this feature would be used for websites that cannot work without javascript but it can be used as a way to test css/xpath selectors on live browser content. Launch parsel-cli with `--browser` flag, navigate your browser and parsel-cli will always execute selectors against current browser DOM.
 
 
 ## Using --re capture groups 

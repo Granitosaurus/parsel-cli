@@ -8,6 +8,7 @@ from typing import Tuple, Union, Dict, List
 
 from bs4 import BeautifulSoup
 from requests import Response
+from loguru import logger as log
 
 
 class Processor:
@@ -96,8 +97,9 @@ class AbsoluteUrl(Processor):
     def __call__(
         self, values: Union[List[str], str], response: Response = None, default: str = ""
     ) -> Tuple[Union[List[str], str], Dict]:
+        log.debug(f"converting urls from {response} to absolute: {values}")
         if not response:
-            return values
+            return values, {}
         if isinstance(values, list):
             return [urljoin(response.url, v) for v in values], {}
         return urljoin(response.url, values), {}

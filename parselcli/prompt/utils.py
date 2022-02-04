@@ -1,4 +1,5 @@
-from parselcli.prompt.completer import CSS_COMPLETION, XPATH_COMPLETION 
+from parselcli.prompt.completer import CSS_COMPLETION, XPATH_COMPLETION
+
 
 def find_attributes(sel, attr):
     """

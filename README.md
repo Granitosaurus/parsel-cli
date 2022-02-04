@@ -1,4 +1,3 @@
-
 # About parselcli   
 
 ![PyPI](https://img.shields.io/pypi/v/parselcli?style=flat-square) ![PyPi version](https://img.shields.io/pypi/pyversions/parselcli?style=flat-square) ![License](https://img.shields.io/pypi/l/parselcli?style=flat-square)
@@ -9,7 +8,6 @@
 > Parsel is a library to extract data from HTML and XML using XPath and CSS selectors
 
 Main goal of this tool is to ease document parser development (usually in the context of web-scraping).
-
 
 ## Features:
 
@@ -22,6 +20,22 @@ Main goal of this tool is to ease document parser development (usually in the co
 * Cache support for repeated usage.
 * Extensive and instant text processing via text processor flags.
 * User configs `~/.config/parsel.toml`
+
+## Install
+
+Parselcli can be installed through pip:
+
+```
+$ pip install --user parsel
+
+# optional: for --browser flag support optional dependency is required:
+$ pip install --user "parsel[browser]"
+
+# optional: for better --embed install ipython:
+$ pip install --user ipython
+```
+
+Note that `--browser` flag is using [Playwright] optional dependency which needs Chromium web browser to work. If `--browser` flag doesn't work ensure the browser is installed via `playwright install chromium` command.
 
 
 ## Example Usage
@@ -91,27 +105,33 @@ For usage recipes, see [recipes.md](/recipes.md) documentations.
 ## Details
 
 ```
-$ parsel --help                                                                                                      
-Usage: parsel [OPTIONS] [URL]
+Usage: parsel [OPTIONS] URL
 
   Interactive shell for css and xpath selectors
 
 Options:
   -h TEXT                         request headers, e.g. -h "user-agent=cat
                                   bot"
-  -f, --file FILENAME             input from html file instead of url
+  --xpath                         start in xpath mode instead of css
+  --browser                       use browser emulator
+  --browser-headless              use headless browser emulator
+  --browser-wait [load|domcontentloaded|networkidle|none]
+                                  wait for browser page to reach some state
+  --browser-wait-css TEXT         wait for browser page to render until css
+                                  selector appears
+  --browser-wait-xpath TEXT       wait for browser page to render until xpath
+                                  selector appears
   -c TEXT                         compile css and return it
   -x TEXT                         compile xpath and return it
   -i TEXT                         initial input
-  --xpath                         start in xpath mode instead of css
   --cache                         cache requests
-  --no-color                      disable output colors
-  --warn-limit INTEGER
+  --no-color                      disable html output colors
+  --vi-mode                       enable vi-mode for input
   --config TEXT                   config file  [default:
-                                  /home/<user>/.config/parsel.toml]
+                                  /home/dex/.config/parsel.toml]
   --embed                         start in embedded python shell
-  -v                              verbosity level  [x>=0]
-  --shell [ptpython|ipython|bpython|python]
+  -v                              verbosity level
+  --shell [ipython|ptpython|bpython|python]
                                   preferred embedded shell; default auto
                                   resolve in order
   --help                          Show this message and exit.
@@ -165,14 +185,6 @@ Or can be set for current session (session processors):
     default processors: [First]
     # will process every following command with new processors
 
-## Install
-    
-    pip install parselcli
-    
-or install from github:
-
-    pip install --user git+https://github.com/Granitosaurus/parsel-cli@1.0.0
-    
 ## Config
 
 `parselcli` can be configured via `toml` configuration file found in `$XDG_HOME/parsel.toml` (usually `~/.config/parsel.toml`):
@@ -183,7 +195,7 @@ or install from github:
     color = True
     # whether input is in vi mode
     vi_mode = False
-    # where ptpython history is located
+    # where prompt toolkit history is located
     history_file_css = "/home/user/.cache/parsel/history_css"
     history_file_xpath = "/home/user/.cache/parsel/history_xpath"
     history_file_embed = "/home/user/.cache/parsel/history_embed"
@@ -199,6 +211,13 @@ or install from github:
     User-Agent = "parselcli web inspector"
     # e.g. chrome on windows use
     # User-Agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
+
+## Development, Debug and Roadmap
+
+Currently the project is somewhat unstable as I wrote this for myself - minor versions are very likely to break API! 
+PRs, suggestions, issues etc. are welcome!
+
+For debugging see `-vv` flag and for info logs see `-v` flag.
 
  
 [Prompt Toolkit]: https://github.com/prompt-toolkit/python-prompt-toolkit

@@ -1,7 +1,14 @@
 from parselcli.render import Renderer
 from typing import Optional, Dict
-from playwright.sync_api import sync_playwright
-from playwright.sync_api._generated import Browser, Page, Playwright
+
+try:
+    from playwright.sync_api import sync_playwright
+    from playwright.sync_api._generated import Browser, Page, Playwright
+
+    PW_SUPPORTED = True
+except ImportError:
+    PW_SUPPORTED = False
+
 from requests import Response
 from loguru import logger as log
 from parsel import Selector
@@ -9,6 +16,10 @@ from parsel import Selector
 
 class PlaywrightRenderer(Renderer):
     def __init__(self, headers: Optional[Dict[str, str]] = None, **kwargs) -> None:
+        if not PW_SUPPORTED:
+            raise ImportError(
+                "to use Playwright rendering Playwright is required; use `pip install parsel[browser]` instead of `pip install parsel`"
+            )
         super().__init__(headers=headers, **kwargs)
         self.pw: Optional[Playwright] = None
         self.browser: Optional[Browser] = None

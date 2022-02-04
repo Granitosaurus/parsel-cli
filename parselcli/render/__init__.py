@@ -24,7 +24,7 @@ class Renderer:
     @property
     def selector(self) -> Selector:
         return Selector(text=self.content)
-    
+
     sel = selector
 
     def goto(self, url, **kwargs) -> Response:

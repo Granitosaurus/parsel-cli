@@ -114,7 +114,7 @@ def cli(
         headers=headers,
         cache_file=config["requests"]["cache_file"],
         cache_expire=config["requests"]["cache_expire"] if cache else -1,
-        browser_kwargs={"headless": bool(browser_headless)}
+        browser_kwargs={"headless": bool(browser_headless)},
     )
     renderer.open()
     renderer.goto(url)
