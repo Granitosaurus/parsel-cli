@@ -11,14 +11,14 @@ except ImportError:
 
 from requests import Response
 from loguru import logger as log
-from parsel import Selector
 
 
 class PlaywrightRenderer(Renderer):
     def __init__(self, headers: Optional[Dict[str, str]] = None, **kwargs) -> None:
         if not PW_SUPPORTED:
             raise ImportError(
-                "to use Playwright rendering Playwright is required; use `pip install parsel[browser]` instead of `pip install parsel`"
+                "to use Playwright rendering Playwright is required; use `pip install parsel[browser]` "
+                "instead of `pip install parsel`"
             )
         super().__init__(headers=headers, **kwargs)
         self.pw: Optional[Playwright] = None

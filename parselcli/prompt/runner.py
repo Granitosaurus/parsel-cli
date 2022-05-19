@@ -1,16 +1,14 @@
 """ Contains main flow tool for parselcli and related helper functions """
-from json import tool
 import re
-import shlex
+from shlex import shlex
 from functools import partial
 from typing import Any, List, Optional, Tuple, Dict
-from urllib import response
 
 import click
 from click import BadOptionUsage, NoSuchOption, Option, OptionParser, echo
 from loguru import logger as log
 from parsel import Selector
-from prompt_toolkit import HTML, PromptSession
+from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import SimpleLexer
@@ -248,11 +246,17 @@ class Prompter:
 
     def parse_input(self, text: str):
         """Parse commands and flags from a string."""
-        lex = shlex.shlex(text, posix=False)
-        lex.whitespace = " "  # we want to keep newline chars etc
-        lex.whitespace_split = True
-        parsed, remainder, _ = self.option_parser.parse_args(list(lex))
+
+        def shlex_split(text):
+            lex = shlex(text, posix=False)
+            lex.whitespace_split = True
+            lex.whitespace = " "  # we want to keep newline chars etc
+            lex.commenters = ""  # disable comment parsing
+            return list(lex)
+
+        parsed, remainder, _ = self.option_parser.parse_args(shlex_split(text))
         remainder = " ".join(remainder).strip()
+        log.debug(f'parsed input: "{text}" to "{parsed}" with remainder "{remainder}"')
         return parsed, remainder
 
     def loop_prompt(self, start_in_embed=False):
@@ -314,10 +318,12 @@ class Prompter:
             try:
                 opts, remainder = self.parse_input(text)
             except (BadOptionUsage, NoSuchOption) as exc:
+                log.error("failed to parse input")
                 echo(exc)
                 return None, {}
             # if any commands are found execute first one
             _inline_processors = []
+            log.debug(f'parsed opts: "{opts}" and remainder: "{remainder}" from "{text}"')
             for name, value in opts.items():
                 if name in self.cmd.commands:
                     log.debug(f"found command {name!r}; executing")
