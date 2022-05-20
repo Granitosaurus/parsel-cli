@@ -34,7 +34,7 @@ class PromptCommands:
 
     def cmd_open(self):
         """open current response url in browser"""
-        webbrowser.open_new_tab(self.response.url)
+        webbrowser.open_new_tab(self.renderer.response.url)
 
     def cmd_view(self):
         """open current response data in browser"""
