@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "parselcli"
-version = "1.2.0"
+version = "1.2.2rc1"
 description = "CLI interpreter for xpath/css selectors"
 readme = "README.md"
 homepage = "https://scrapecrow.com"

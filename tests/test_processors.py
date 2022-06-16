@@ -14,6 +14,7 @@ from parselcli.processors import (
     Collapse,
     Repr,
     Slice,
+    Unique,
 )
 
 
@@ -117,3 +118,10 @@ def test_Sum():
     assert proc("1.666") == ("1.666", {})
     with pytest.raises(decimal.InvalidOperation):
         assert proc(["a", "b"])
+
+
+def test_Unique():
+    proc = Unique()
+    assert proc([1, 2, 3, 3, 3, 4]) == ([1, 2, 3, 4], {})
+    assert proc([1, 3, 1, 1, 2, 4]) == ([1, 3, 2, 4], {})
+    assert proc("some text") == ("some text", {})

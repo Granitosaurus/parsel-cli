@@ -206,3 +206,12 @@ class Sum(Processor):
         if all(v.isdigit() for v in values):
             return str(sum(int(v) for v in values)), {}
         return str(sum(Decimal(v) for v in values)), {}
+
+
+class Unique(Processor):
+    def __call__(
+        self, values: Union[List[str], str], response: Response = None, default: str = ""
+    ) -> Tuple[Union[List[str], str], Dict]:
+        if not isinstance(values, list):
+            return values, {}
+        return list(dict.fromkeys(values).keys()), {}

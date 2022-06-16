@@ -3,9 +3,9 @@ from functools import partial
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING, Callable, Dict
 
+import pyperclip
 from click import echo
 from loguru import logger as log
-import pyperclip
 from parselcli.embed import embed_auto
 from parselcli.render import Renderer
 

@@ -32,6 +32,7 @@ from parselcli.processors import (
     Repr,
     Regex,
     Sum,
+    Unique,
 )
 
 echo = partial(echo, err=True)
@@ -55,6 +56,7 @@ class Prompter:
         "re": Regex,
         "slice": Slice,
         "sum": Sum,
+        "unique": Unique,
     }
     option_parser = OptionParser()
     options_commands = [
@@ -99,6 +101,11 @@ class Prompter:
             is_flag=True,
             flag_value="",
             help="join results",
+        ),
+        Option(
+            ["--unique", "-u"],
+            is_flag=True,
+            help="filter out duplicate values",
         ),
         Option(
             ["--join-with", "-J", "join"],
