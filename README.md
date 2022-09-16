@@ -26,10 +26,10 @@ Main goal of this tool is to ease document parser development (usually in the co
 Parselcli can be installed through pip:
 
 ```
-$ pip install --user parsel
+$ pip install --user parselcli
 
 # optional: for --browser flag support optional dependency is required:
-$ pip install --user "parsel[browser]"
+$ pip install --user "parselcli[browser]"
 
 # optional: for better --embed install ipython:
 $ pip install --user ipython
