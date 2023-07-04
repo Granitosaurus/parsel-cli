@@ -15,7 +15,8 @@ from parselcli.config import CONFIG, get_config
 from parselcli.embed import PYTHON_SHELLS
 from parselcli.prompt import Prompter
 from parselcli.render.browser import PlaywrightRenderer
-from parselcli.render.http import HttpRenderer, CachedHttpRenderer
+from parselcli.render.filesys import FileRenderer
+from parselcli.render.http import CachedHttpRenderer, HttpRenderer
 
 CACHE_EXPIRY = 60 * 60  # 1 hour
 
@@ -69,7 +70,7 @@ def setup_logging(verbosity: int = 0):
     help="preferred embedded shell; default auto resolve in order",
 )
 def cli(
-    url,
+    url: str,
     xpath,
     initial_input,
     embed,
@@ -104,7 +105,9 @@ def cli(
     log.debug(f"using headers: {headers}")
 
     # Establish renderer
-    if browser or browser_headless:
+    if not url.startswith(("http", "https")):
+        renderer_cls = FileRenderer
+    elif browser or browser_headless:
         renderer_cls = PlaywrightRenderer
     elif cache:
         renderer_cls = CachedHttpRenderer
